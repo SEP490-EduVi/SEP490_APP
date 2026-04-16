@@ -14,11 +14,13 @@ import 'video_block_widget.dart';
 class BlockDispatcher extends StatelessWidget {
   final EduViBlock block;
   final AssetService assetService;
+  final VoidCallback? onNextSlide;
 
   const BlockDispatcher({
     super.key,
     required this.block,
     required this.assetService,
+    this.onNextSlide,
   });
 
   @override
@@ -29,7 +31,7 @@ class BlockDispatcher extends StatelessWidget {
       'IMAGE' => ImageBlockWidget(block: block, assetService: assetService),
       'VIDEO' => VideoBlockWidget(block: block, assetService: assetService),
       'MATERIAL' => MaterialBlockWidget(block: block, assetService: assetService),
-      'QUIZ' => QuizBlockWidget(block: block),
+      'QUIZ' => QuizBlockWidget(block: block, onGoNextSlide: onNextSlide),
       'FLASHCARD' => FlashcardBlockWidget(block: block),
       'FILL_BLANK' => FillBlankBlockWidget(block: block),
       _ => Container(

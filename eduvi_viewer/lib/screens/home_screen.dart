@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../services/file_service.dart';
 import '../services/recent_file_service.dart';
+import 'history_screen.dart';
 import 'presentation_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -66,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() => _lastOpenedInfo = updated);
       }
 
-      if (schema != null && mounted) {
+      if (mounted) {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => PresentationScreen(schema: schema),
@@ -76,12 +77,20 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Loi: $e')),
+          SnackBar(content: Text('Lỗi: $e')),
         );
       }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<void> _openHistory() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const HistoryScreen()),
+    );
+
+    await _loadLastOpened();
   }
 
   @override
@@ -117,9 +126,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.14),
+                            color: Colors.white.withValues(alpha: 0.14),
                             borderRadius: BorderRadius.circular(999),
-                            border: Border.all(color: Colors.white.withOpacity(0.28)),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
                           ),
                           child: const Text(
                             'EduVi Desktop Viewer',
@@ -129,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 18),
                       const Text(
-                        'Mo bai giang offline\nnhanh va ro rang',
+                        'Mở bài giảng offline\nnhanh và rõ ràng',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w800,
@@ -139,8 +148,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Keo-tha file .eduvi de bat dau. App se giu nguyen slide, media va bo cuc tu file export.',
-                        style: theme.textTheme.titleMedium?.copyWith(color: Colors.white.withOpacity(0.86), height: 1.4),
+                        'Kéo-thả file .eduvi để bắt đầu. App sẽ giữ nguyên slide, media và bố cục từ file export.',
+                        style: theme.textTheme.titleMedium?.copyWith(color: Colors.white.withValues(alpha: 0.86), height: 1.4),
                       ),
                       const SizedBox(height: 26),
                       AnimatedContainer(
@@ -148,15 +157,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         curve: Curves.easeOut,
                         padding: const EdgeInsets.all(30),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(_dragging ? 0.20 : 0.12),
+                          color: Colors.white.withValues(alpha: _dragging ? 0.20 : 0.12),
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
-                            color: _dragging ? const Color(0xFF93C5FD) : Colors.white.withOpacity(0.26),
+                            color: _dragging ? const Color(0xFF93C5FD) : Colors.white.withValues(alpha: 0.26),
                             width: _dragging ? 2.2 : 1,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.18),
+                              color: Colors.black.withValues(alpha: 0.18),
                               blurRadius: 28,
                               offset: const Offset(0, 16),
                             ),
@@ -171,7 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              _dragging ? 'Tha file .eduvi vao day' : 'Keo tha file vao day',
+                              _dragging ? 'Thả file .eduvi vào đây' : 'Kéo thả file vào đây',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 21,
@@ -180,16 +189,28 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              'Hoac chon file bang File Explorer',
-                              style: TextStyle(color: Colors.white.withOpacity(0.86)),
+                              'Hoặc chọn file bằng File Explorer',
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.86)),
                             ),
                             const SizedBox(height: 18),
                             _loading
                                 ? const CircularProgressIndicator(strokeWidth: 2.4)
-                                : FilledButton.icon(
-                                    onPressed: _openFile,
-                                    icon: const Icon(Icons.folder_open),
-                                    label: const Text('Mo file .eduvi'),
+                                : Wrap(
+                                    alignment: WrapAlignment.center,
+                                    spacing: 10,
+                                    runSpacing: 10,
+                                    children: [
+                                      FilledButton.icon(
+                                        onPressed: _openFile,
+                                        icon: const Icon(Icons.folder_open),
+                                        label: const Text('Mở file .eduvi'),
+                                      ),
+                                      OutlinedButton.icon(
+                                        onPressed: _openHistory,
+                                        icon: const Icon(Icons.history),
+                                        label: const Text('Xem lịch sử'),
+                                      ),
+                                    ],
                                   ),
                           ],
                         ),
@@ -237,7 +258,7 @@ class _HomeBackground extends StatelessWidget {
               height: 360,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.09),
+                color: Colors.white.withValues(alpha: 0.09),
               ),
             ),
           ),
@@ -249,7 +270,7 @@ class _HomeBackground extends StatelessWidget {
               height: 420,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.06),
+                color: Colors.white.withValues(alpha: 0.06),
               ),
             ),
           ),
@@ -278,15 +299,15 @@ class _LastOpenedCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.10),
+        color: Colors.white.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.22)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Da mo gan nhat',
+            'Đã mở gần nhất',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 8),
@@ -303,25 +324,25 @@ class _LastOpenedCard extends StatelessWidget {
                   info.subjectName,
                   info.gradeName,
                 ].where((e) => (e ?? '').isNotEmpty).join(' • '),
-                style: TextStyle(color: Colors.white.withOpacity(0.90)),
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.90)),
               ),
             ),
           const SizedBox(height: 4),
           Text(
             openedLabel,
-            style: TextStyle(color: Colors.white.withOpacity(0.78), fontSize: 12),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.78), fontSize: 12),
           ),
           if (updatedLabel.isNotEmpty)
             Text(
-              'Cap nhat noi dung: $updatedLabel',
-              style: TextStyle(color: Colors.white.withOpacity(0.78), fontSize: 12),
+              'Cập nhật nội dung: $updatedLabel',
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.78), fontSize: 12),
             ),
           const SizedBox(height: 2),
           Text(
             info.filePath,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: Colors.white.withOpacity(0.70), fontSize: 12),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.70), fontSize: 12),
           ),
         ],
       ),

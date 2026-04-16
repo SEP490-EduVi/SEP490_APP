@@ -7,11 +7,13 @@ import 'blocks/block_dispatcher.dart';
 class LayoutRenderer extends StatelessWidget {
   final EduViLayout layout;
   final AssetService assetService;
+  final VoidCallback? onNextSlide;
 
   const LayoutRenderer({
     super.key,
     required this.layout,
     required this.assetService,
+    this.onNextSlide,
   });
 
   @override
@@ -23,7 +25,11 @@ class LayoutRenderer extends StatelessWidget {
           for (final block in layout.blocks)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: BlockDispatcher(block: block, assetService: assetService),
+              child: BlockDispatcher(
+                block: block,
+                assetService: assetService,
+                onNextSlide: onNextSlide,
+              ),
             ),
         ],
       );
@@ -53,6 +59,7 @@ class LayoutRenderer extends StatelessWidget {
                     child: BlockDispatcher(
                       block: block,
                       assetService: assetService,
+                      onNextSlide: onNextSlide,
                     ),
                   ),
               ],

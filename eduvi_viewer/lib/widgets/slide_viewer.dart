@@ -7,11 +7,13 @@ import 'layout_renderer.dart';
 class SlideViewer extends StatelessWidget {
   final EduViCard card;
   final AssetService assetService;
+  final VoidCallback? onNextSlide;
 
   const SlideViewer({
     super.key,
     required this.card,
     required this.assetService,
+    this.onNextSlide,
   });
 
   @override
@@ -63,7 +65,11 @@ class SlideViewer extends StatelessWidget {
                     for (final layout in card.layouts)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 16),
-                        child: LayoutRenderer(layout: layout, assetService: assetService),
+                        child: LayoutRenderer(
+                          layout: layout,
+                          assetService: assetService,
+                          onNextSlide: onNextSlide,
+                        ),
                       ),
                   ],
                 ),

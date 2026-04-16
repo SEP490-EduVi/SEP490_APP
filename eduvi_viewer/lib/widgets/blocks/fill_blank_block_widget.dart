@@ -15,12 +15,26 @@ class _FillBlankBlockWidgetState extends State<FillBlankBlockWidget> {
   late List<TextEditingController> _controllers;
   late List<bool?> _results;
   bool _checked = false;
+  bool _showAnswers = false;
 
   List<String> get _blanks => (widget.block.content['blanks'] as List<dynamic>? ?? [])
       .map((b) => b.toString())
       .toList();
 
   String get _sentence => widget.block.content['sentence'] as String? ?? '';
+
+  String _normalizeAnswerForCompare(String value) {
+    var normalized = value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+    normalized = normalized
+        .replaceAll(RegExp(r'[àáạảãâầấậẩẫăằắặẳẵ]'), 'a')
+        .replaceAll(RegExp(r'[èéẹẻẽêềếệểễ]'), 'e')
+        .replaceAll(RegExp(r'[ìíịỉĩ]'), 'i')
+        .replaceAll(RegExp(r'[òóọỏõôồốộổỗơờớợởỡ]'), 'o')
+        .replaceAll(RegExp(r'[ùúụủũưừứựửữ]'), 'u')
+        .replaceAll(RegExp(r'[ỳýỵỷỹ]'), 'y')
+        .replaceAll('đ', 'd');
+    return normalized;
+  }
 
   @override
   void initState() {
@@ -41,8 +55,8 @@ class _FillBlankBlockWidgetState extends State<FillBlankBlockWidget> {
     setState(() {
       _checked = true;
       for (int i = 0; i < _blanks.length; i++) {
-        _results[i] = _controllers[i].text.trim().toLowerCase() ==
-            _blanks[i].trim().toLowerCase();
+        _results[i] = _normalizeAnswerForCompare(_controllers[i].text) ==
+            _normalizeAnswerForCompare(_blanks[i]);
       }
     });
   }
@@ -50,10 +64,17 @@ class _FillBlankBlockWidgetState extends State<FillBlankBlockWidget> {
   void _reset() {
     setState(() {
       _checked = false;
+      _showAnswers = false;
       for (final c in _controllers) {
         c.clear();
       }
       _results = List.filled(_blanks.length, null);
+    });
+  }
+
+  void _toggleAnswers() {
+    setState(() {
+      _showAnswers = !_showAnswers;
     });
   }
 
@@ -85,20 +106,70 @@ class _FillBlankBlockWidgetState extends State<FillBlankBlockWidget> {
             ],
           ),
           const SizedBox(height: 20),
-          Row(
+          Wrap(
+            spacing: 10,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               ElevatedButton(
                 onPressed: _checked ? _reset : _check,
-                child: Text(_checked ? 'Lam lai' : 'Kiem tra'),
+                child: Text(_checked ? 'Làm lại' : 'Kiểm tra'),
+              ),
+              OutlinedButton.icon(
+                onPressed: _toggleAnswers,
+                icon: Icon(_showAnswers ? Icons.visibility_off : Icons.visibility),
+                label: Text(_showAnswers ? 'Ẩn đáp án' : 'Xem đáp án'),
               ),
               if (_checked) ...[
-                const SizedBox(width: 12),
                 Text(
-                  '${_results.where((r) => r == true).length} / ${_blanks.length} dung',
+                  '${_results.where((r) => r == true).length} / ${_blanks.length} đúng',
                   style: const TextStyle(color: Colors.white70),
                 ),
               ],
             ],
+          ),
+          if (_showAnswers) ...[
+            const SizedBox(height: 14),
+            _buildAnswerPanel(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnswerPanel() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(18),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Đáp án đúng',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: List.generate(_blanks.length, (index) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(24),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  '${index + 1}. ${_blanks[index]}',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                ),
+              );
+            }),
           ),
         ],
       ),

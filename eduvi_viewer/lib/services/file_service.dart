@@ -2,8 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 
 import '../models/eduvi_schema.dart';
+
+EduViSchema _parseSchemaFromString(String jsonString) {
+  final json = jsonDecode(jsonString) as Map<String, dynamic>;
+  return EduViSchema.fromJson(json);
+}
 
 class FileService {
   static Future<String?> pickEduViPath() async {
@@ -31,7 +37,10 @@ class FileService {
   static Future<EduViSchema> parseFile(String filePath) async {
     final file = File(filePath);
     final jsonString = await file.readAsString(encoding: utf8);
-    final json = jsonDecode(jsonString) as Map<String, dynamic>;
-    return EduViSchema.fromJson(json);
+    return compute(_parseSchemaFromString, jsonString);
+  }
+
+  static EduViSchema parseSchemaJson(String jsonString) {
+    return _parseSchemaFromString(jsonString);
   }
 }

@@ -4,8 +4,13 @@ import '../../models/block_model.dart';
 
 class QuizBlockWidget extends StatefulWidget {
   final EduViBlock block;
+  final VoidCallback? onGoNextSlide;
 
-  const QuizBlockWidget({super.key, required this.block});
+  const QuizBlockWidget({
+    super.key,
+    required this.block,
+    this.onGoNextSlide,
+  });
 
   @override
   State<QuizBlockWidget> createState() => _QuizBlockWidgetState();
@@ -41,11 +46,25 @@ class _QuizBlockWidgetState extends State<QuizBlockWidget> {
     });
   }
 
+  void _handlePrimaryAction() {
+    if (_currentQ + 1 < _questions.length) {
+      _nextQuestion();
+      return;
+    }
+
+    if (widget.onGoNextSlide != null) {
+      widget.onGoNextSlide!.call();
+      return;
+    }
+
+    _nextQuestion();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_questions.isEmpty) {
       return const Center(
-        child: Text('Khong co cau hoi', style: TextStyle(color: Colors.white)),
+        child: Text('Không có câu hỏi', style: TextStyle(color: Colors.white)),
       );
     }
 
@@ -67,7 +86,7 @@ class _QuizBlockWidgetState extends State<QuizBlockWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Cau ${_currentQ + 1} / ${_questions.length}',
+            'Câu ${_currentQ + 1} / ${_questions.length}',
             style: const TextStyle(color: Colors.white54, fontSize: 14),
           ),
           const SizedBox(height: 12),
@@ -103,9 +122,11 @@ class _QuizBlockWidgetState extends State<QuizBlockWidget> {
             Align(
               alignment: Alignment.centerRight,
               child: ElevatedButton(
-                onPressed: _nextQuestion,
+                onPressed: _handlePrimaryAction,
                 child: Text(
-                  _currentQ + 1 < _questions.length ? 'Cau tiep' : 'Xem ket qua',
+                  _currentQ + 1 < _questions.length
+                      ? 'Câu tiếp'
+                      : (widget.onGoNextSlide != null ? 'Qua trang sau' : 'Xem kết quả'),
                 ),
               ),
             ),
@@ -170,7 +191,7 @@ class _QuizBlockWidgetState extends State<QuizBlockWidget> {
           ),
           const SizedBox(height: 8),
           Text(
-            _score == _questions.length ? 'Xuat sac!' : 'Co gang hon nhe!',
+            _score == _questions.length ? 'Xuất sắc!' : 'Cố gắng hơn nhé!',
             style: const TextStyle(color: Colors.white70, fontSize: 18),
           ),
           const SizedBox(height: 24),
@@ -183,7 +204,7 @@ class _QuizBlockWidgetState extends State<QuizBlockWidget> {
                 _score = 0;
               });
             },
-            child: const Text('Lam lai'),
+            child: const Text('Làm lại'),
           ),
         ],
       ),

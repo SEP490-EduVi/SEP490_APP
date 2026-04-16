@@ -67,7 +67,7 @@ class _YouTubeBlockWidgetState extends State<YouTubeBlockWidget> {
     try {
       final id = _videoId;
       if (id == null) {
-        setState(() => _error = 'Khong trich xuat duoc YouTube ID.');
+        setState(() => _error = 'Không trích xuất được YouTube ID.');
         return;
       }
 
@@ -80,7 +80,7 @@ class _YouTubeBlockWidgetState extends State<YouTubeBlockWidget> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _error = 'Khong the mo YouTube nhung: $e');
+        setState(() => _error = 'Không thể mở YouTube nhúng: $e');
         if (!_launchedExternal) {
           _launchedExternal = true;
           launchUrlString(_watchUrl, mode: LaunchMode.externalApplication);
@@ -160,7 +160,7 @@ class _FallbackPanel extends StatelessWidget {
             FilledButton.tonalIcon(
               onPressed: () => launchUrlString(url, mode: LaunchMode.externalApplication),
               icon: const Icon(Icons.open_in_new),
-              label: const Text('Mo YouTube tren trinh duyet'),
+              label: const Text('Mở YouTube trên trình duyệt'),
             ),
           ],
         ),

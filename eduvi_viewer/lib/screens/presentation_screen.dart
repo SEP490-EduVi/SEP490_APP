@@ -56,8 +56,20 @@ class _PresentationScreenState extends State<PresentationScreen> {
   void _next() => _goToPage(_currentPage + 1);
   void _prev() => _goToPage(_currentPage - 1);
 
+  bool _isTypingInTextField() {
+    final focusedContext = FocusManager.instance.primaryFocus?.context;
+    if (focusedContext == null) return false;
+
+    if (focusedContext.widget is EditableText) {
+      return true;
+    }
+
+    return focusedContext.findAncestorWidgetOfExactType<EditableText>() != null;
+  }
+
   KeyEventResult _handleKey(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
+    if (_isTypingInTextField()) return KeyEventResult.ignored;
 
     switch (event.logicalKey) {
       case LogicalKeyboardKey.arrowRight:
@@ -109,6 +121,7 @@ class _PresentationScreenState extends State<PresentationScreen> {
                         key: ValueKey(card.id),
                         card: card,
                         assetService: _assetService,
+                        onNextSlide: _next,
                       ),
                     );
                   },
