@@ -1,0 +1,8 @@
+﻿HUONG DAN CAI DAT NHANH EDUVI VIEWER
+
+1) Tai file EduViViewer-Windows-Teacher-Pack-v1.1.0.zip ve may tinh.
+2) Chuot phai file .zip, chon Extract All... de giai nen.
+3) Mo thu muc vua giai nen, chay file EduViViewer-Setup-1.1.0.exe.
+4) Neu Windows canh bao SmartScreen: chon More info -> Run anyway.
+5) Trong bo cai dat: bam Next -> Install -> Finish.
+6) Mo EduVi Viewer tu Desktop/Start Menu va mo file .eduvi de day hoc.
