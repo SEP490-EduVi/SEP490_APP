@@ -9,11 +9,15 @@ import 'video_block_widget.dart';
 class MaterialBlockWidget extends StatelessWidget {
   final EduViBlock block;
   final AssetService assetService;
+  final bool presentationMode;
+  final bool isActiveSlide;
 
   const MaterialBlockWidget({
     super.key,
     required this.block,
     required this.assetService,
+    this.presentationMode = false,
+    this.isActiveSlide = true,
   });
 
   Map<String, dynamic> get _data {
@@ -23,7 +27,8 @@ class MaterialBlockWidget extends StatelessWidget {
     return const <String, dynamic>{};
   }
 
-  String get _widgetType => (block.content['widgetType'] as String? ?? '').toUpperCase();
+  String get _widgetType =>
+      (block.content['widgetType'] as String? ?? '').toUpperCase();
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +70,12 @@ class MaterialBlockWidget extends StatelessWidget {
       },
     );
 
-    return VideoBlockWidget(block: videoBlock, assetService: assetService);
+    return VideoBlockWidget(
+      block: videoBlock,
+      assetService: assetService,
+      presentationMode: presentationMode,
+      isActiveSlide: isActiveSlide,
+    );
   }
 
   Widget _buildCodeMaterial() {
@@ -75,9 +85,9 @@ class MaterialBlockWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF111827),
+        color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF374151)),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,14 +95,14 @@ class MaterialBlockWidget extends StatelessWidget {
           if (language.isNotEmpty) ...[
             Text(
               language.toUpperCase(),
-              style: const TextStyle(color: Colors.white54, fontSize: 11),
+              style: const TextStyle(color: Color(0xFF64748B), fontSize: 11),
             ),
             const SizedBox(height: 8),
           ],
           SelectableText(
             code.isEmpty ? '(empty code)' : code,
             style: const TextStyle(
-              color: Color(0xFFE5E7EB),
+              color: Color(0xFF0F172A),
               fontFamily: 'Consolas',
               fontSize: 13,
               height: 1.45,
@@ -129,9 +139,9 @@ class MaterialBlockWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white24),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,15 +149,16 @@ class MaterialBlockWidget extends StatelessWidget {
           for (final point in points) ...[
             Text(
               (point['label'] as String? ?? 'item'),
-              style: const TextStyle(color: Colors.white70, fontSize: 12),
+              style: const TextStyle(color: Color(0xFF475569), fontSize: 12),
             ),
             const SizedBox(height: 4),
             FractionallySizedBox(
-              widthFactor: ((point['value'] as num?)?.toDouble() ?? 0) / maxValue,
+              widthFactor:
+                  ((point['value'] as num?)?.toDouble() ?? 0) / maxValue,
               child: Container(
                 height: 10,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF38BDF8),
+                  color: const Color(0xFF2563EB),
                   borderRadius: BorderRadius.circular(99),
                 ),
               ),
@@ -169,17 +180,18 @@ class MaterialBlockWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.quiz, color: Colors.amber, size: 24),
+          const Icon(Icons.quiz, color: Color(0xFF2563EB), size: 24),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               '$title${count > 0 ? ' - $count câu hỏi' : ''}',
-              style: const TextStyle(color: Colors.white, fontSize: 15),
+              style: const TextStyle(color: Color(0xFF0F172A), fontSize: 15),
             ),
           ),
         ],
@@ -188,28 +200,33 @@ class MaterialBlockWidget extends StatelessWidget {
   }
 
   Widget _buildInfoCard({bool showJson = false}) {
-    final src = (_data['src'] as String? ?? _data['url'] as String? ?? '').trim();
+    final src = (_data['src'] as String? ?? _data['url'] as String? ?? '')
+        .trim();
     final title = (_data['title'] as String? ?? _widgetType).trim();
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white24),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title.isEmpty ? _widgetType : title,
-            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              color: Color(0xFF0F172A),
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           if (src.isNotEmpty) ...[
             const SizedBox(height: 6),
             Text(
               src,
-              style: const TextStyle(color: Colors.white60, fontSize: 12),
+              style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -218,7 +235,7 @@ class MaterialBlockWidget extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               const JsonEncoder.withIndent('  ').convert(_data),
-              style: const TextStyle(color: Colors.white70, fontSize: 11),
+              style: const TextStyle(color: Color(0xFF475569), fontSize: 11),
               maxLines: 8,
               overflow: TextOverflow.ellipsis,
             ),

@@ -8,20 +8,25 @@ class SlideViewer extends StatelessWidget {
   final EduViCard card;
   final AssetService assetService;
   final VoidCallback? onNextSlide;
+  final bool presentationMode;
+  final bool isActiveSlide;
+  final bool allowUserInteraction;
 
   const SlideViewer({
     super.key,
     required this.card,
     required this.assetService,
     this.onNextSlide,
+    this.presentationMode = false,
+    this.isActiveSlide = true,
+    this.allowUserInteraction = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    final mainAxisAlignment = switch (card.contentAlignment) {
-      'top' => MainAxisAlignment.start,
+    final mainAxisAlignment = switch (card.contentAlignment.toLowerCase()) {
       'bottom' => MainAxisAlignment.end,
-      _ => MainAxisAlignment.center,
+      _ => MainAxisAlignment.start,
     };
 
     DecorationImage? backgroundImage;
@@ -43,41 +48,83 @@ class SlideViewer extends StatelessWidget {
 
     final backgroundColor = _resolveBackgroundColor(card.backgroundColor);
 
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        image: backgroundImage,
-      ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1120),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 56, vertical: 40),
-            child: SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: MediaQuery.of(context).size.height * 0.72),
-                child: Column(
-                  mainAxisAlignment: mainAxisAlignment,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (final layout in card.layouts)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: LayoutRenderer(
-                          layout: layout,
-                          assetService: assetService,
-                          onNextSlide: onNextSlide,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final outerPadding = EdgeInsets.symmetric(
+          horizontal: constraints.maxWidth > 1200 ? 18 : 10,
+          vertical: 10,
+        );
+
+        final innerPadding = EdgeInsets.symmetric(
+          horizontal: constraints.maxWidth > 1000 ? 24 : 14,
+          vertical: 16,
+        );
+
+        return Padding(
+          padding: outerPadding,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              image: backgroundImage,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFD6E1EE)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: (presentationMode && !allowUserInteraction)
+                  ? SelectionContainer.disabled(
+                      child: SingleChildScrollView(
+                        padding: innerPadding,
+                        child: Column(
+                          mainAxisAlignment: mainAxisAlignment,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            for (final layout in card.layouts)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: LayoutRenderer(
+                                  layout: layout,
+                                  assetService: assetService,
+                                  onNextSlide: onNextSlide,
+                                  presentationMode: presentationMode,
+                                  isActiveSlide: isActiveSlide,
+                                ),
+                              ),
+                          ],
                         ),
                       ),
-                  ],
-                ),
-              ),
+                    )
+                  : SingleChildScrollView(
+                      padding: innerPadding,
+                      child: Column(
+                        mainAxisAlignment: mainAxisAlignment,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          for (final layout in card.layouts)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: LayoutRenderer(
+                                layout: layout,
+                                assetService: assetService,
+                                onNextSlide: onNextSlide,
+                                presentationMode: presentationMode,
+                                isActiveSlide: isActiveSlide,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

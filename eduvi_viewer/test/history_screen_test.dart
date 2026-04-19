@@ -73,7 +73,7 @@ void main() {
     expect(find.text('Môn'), findsOneWidget);
   });
 
-  testWidgets('history screen avoids hardcoded light-only background colors in dark mode', (
+  testWidgets('history screen keeps white-tone background even in dark mode', (
     tester,
   ) async {
     await RecentFileService.saveLastOpened(
@@ -92,24 +92,26 @@ void main() {
     await tester.pumpAndSettle();
 
     final containers = tester.widgetList<Container>(find.byType(Container));
-    final hasHardcodedLightSurface = containers.any((container) {
+    final hasWhiteToneBackground = containers.any((container) {
       final decoration = container.decoration;
       if (decoration is! BoxDecoration) return false;
 
-      if (decoration.color == const Color(0xFFF8FAFC)) {
+      if (decoration.color == const Color(0xFFF8FAFC) || decoration.color == Colors.white) {
         return true;
       }
 
       final gradient = decoration.gradient;
       if (gradient is LinearGradient) {
         return gradient.colors.any(
-          (color) => color == const Color(0xFFF3FAFF) || color == const Color(0xFFF8FAFC),
+          (color) =>
+              color == const Color(0xFFFFFFFF) ||
+              color == const Color(0xFFF8FAFC),
         );
       }
 
       return false;
     });
 
-    expect(hasHardcodedLightSurface, isFalse);
+    expect(hasWhiteToneBackground, isTrue);
   });
 }

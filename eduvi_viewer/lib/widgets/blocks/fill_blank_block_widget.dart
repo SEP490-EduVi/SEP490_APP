@@ -80,13 +80,16 @@ class _FillBlankBlockWidgetState extends State<FillBlankBlockWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final parts = _sentence.split(RegExp(r'\[.*?\]'));
     int blankIdx = 0;
 
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: Colors.white,
+        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.8)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -98,7 +101,7 @@ class _FillBlankBlockWidgetState extends State<FillBlankBlockWidget> {
               for (int i = 0; i < parts.length; i++) ...[
                 Text(
                   parts[i],
-                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                  style: TextStyle(color: colorScheme.onSurface, fontSize: 18),
                 ),
                 if (i < parts.length - 1 && blankIdx < _blanks.length)
                   _buildBlankField(blankIdx++),
@@ -123,7 +126,7 @@ class _FillBlankBlockWidgetState extends State<FillBlankBlockWidget> {
               if (_checked) ...[
                 Text(
                   '${_results.where((r) => r == true).length} / ${_blanks.length} đúng',
-                  style: const TextStyle(color: Colors.white70),
+                  style: TextStyle(color: colorScheme.onSurfaceVariant),
                 ),
               ],
             ],
@@ -138,20 +141,22 @@ class _FillBlankBlockWidgetState extends State<FillBlankBlockWidget> {
   }
 
   Widget _buildAnswerPanel() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withAlpha(18),
+        color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white24),
+        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.8)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Đáp án đúng',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+            style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 8),
           Wrap(
@@ -161,12 +166,12 @@ class _FillBlankBlockWidgetState extends State<FillBlankBlockWidget> {
               return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(24),
+                  color: colorScheme.surfaceContainerHigh,
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
                   '${index + 1}. ${_blanks[index]}',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                  style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.w600),
                 ),
               );
             }),
@@ -177,7 +182,8 @@ class _FillBlankBlockWidgetState extends State<FillBlankBlockWidget> {
   }
 
   Widget _buildBlankField(int index) {
-    Color borderColor = Colors.white38;
+    final colorScheme = Theme.of(context).colorScheme;
+    Color borderColor = colorScheme.outline;
     if (_checked && _results[index] != null) {
       borderColor = _results[index]! ? Colors.green : Colors.red;
     }
@@ -188,7 +194,7 @@ class _FillBlankBlockWidgetState extends State<FillBlankBlockWidget> {
       child: TextField(
         controller: _controllers[index],
         enabled: !_checked,
-        style: const TextStyle(color: Colors.white, fontSize: 18),
+        style: TextStyle(color: colorScheme.onSurface, fontSize: 18),
         textAlign: TextAlign.center,
         decoration: InputDecoration(
           isDense: true,
@@ -196,8 +202,8 @@ class _FillBlankBlockWidgetState extends State<FillBlankBlockWidget> {
           enabledBorder: UnderlineInputBorder(
             borderSide: BorderSide(color: borderColor, width: 2),
           ),
-          focusedBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.blue, width: 2),
+          focusedBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: colorScheme.primary, width: 2),
           ),
           disabledBorder: UnderlineInputBorder(
             borderSide: BorderSide(color: borderColor, width: 2),

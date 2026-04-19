@@ -8,12 +8,16 @@ class LayoutRenderer extends StatelessWidget {
   final EduViLayout layout;
   final AssetService assetService;
   final VoidCallback? onNextSlide;
+  final bool presentationMode;
+  final bool isActiveSlide;
 
   const LayoutRenderer({
     super.key,
     required this.layout,
     required this.assetService,
     this.onNextSlide,
+    this.presentationMode = false,
+    this.isActiveSlide = true,
   });
 
   @override
@@ -29,6 +33,8 @@ class LayoutRenderer extends StatelessWidget {
                 block: block,
                 assetService: assetService,
                 onNextSlide: onNextSlide,
+                presentationMode: presentationMode,
+                isActiveSlide: isActiveSlide,
               ),
             ),
         ],
@@ -40,7 +46,8 @@ class LayoutRenderer extends StatelessWidget {
       (col) => layout.blocks.where((b) => b.columnIndex == col).toList(),
     );
 
-    final widths = layout.columnWidths ??
+    final widths =
+        layout.columnWidths ??
         List.filled(layout.columnCount, 100.0 / layout.columnCount);
 
     return Row(
@@ -60,6 +67,8 @@ class LayoutRenderer extends StatelessWidget {
                       block: block,
                       assetService: assetService,
                       onNextSlide: onNextSlide,
+                      presentationMode: presentationMode,
+                      isActiveSlide: isActiveSlide,
                     ),
                   ),
               ],

@@ -102,7 +102,10 @@ class _YouTubeBlockWidgetState extends State<YouTubeBlockWidget> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          color: const Color(0xFF0B1220),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
           child: Stack(
             children: [
               if (_ready) Positioned.fill(child: Webview(_controller)),
@@ -143,17 +146,21 @@ class _FallbackPanel extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.smart_display, size: 42, color: Colors.white70),
+            const Icon(Icons.smart_display, size: 42, color: Color(0xFF64748B)),
             const SizedBox(height: 10),
             Text(
               title,
-              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                color: Color(0xFF0F172A),
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               message,
-              style: const TextStyle(color: Colors.white70, fontSize: 12),
+              style: const TextStyle(color: Color(0xFF475569), fontSize: 12),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),

@@ -49,8 +49,8 @@ class EduViApp extends StatelessWidget {
       title: 'EduVi Viewer',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      darkTheme: AppTheme.light,
+      themeMode: ThemeMode.light,
       home: HomeScreen(initialFilePath: initialEduViPath),
     );
   }

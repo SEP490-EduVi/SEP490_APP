@@ -23,6 +23,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   String? _selectedSubject;
   String? _selectedProject;
   String? _openingId;
+  final Map<String, int> _lastViewedSlidesByPath = {};
 
   List<EduViHistoryEntry> _allEntries = const [];
 
@@ -63,17 +64,32 @@ class _HistoryScreenState extends State<HistoryScreen> {
     setState(() => _openingId = entry.id);
     try {
       final schema = await FileService.parseFile(entry.filePath);
-      await RecentFileService.saveLastOpened(filePath: entry.filePath, schema: schema);
+      await RecentFileService.saveLastOpened(
+        filePath: entry.filePath,
+        schema: schema,
+      );
 
       if (!mounted) return;
-      await Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => PresentationScreen(schema: schema)),
+      final result = await Navigator.of(context).push<int>(
+        MaterialPageRoute(
+          builder: (_) => PresentationScreen(
+            schema: schema,
+            initialSlideIndex: _lastViewedSlidesByPath[entry.filePath] ?? 0,
+            onExitSlideChanged: (slideIndex) {
+              _lastViewedSlidesByPath[entry.filePath] = slideIndex;
+            },
+          ),
+        ),
       );
+
+      if (result != null) {
+        _lastViewedSlidesByPath[entry.filePath] = result;
+      }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Không mở được file: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Không mở được file: $e')));
     } finally {
       if (mounted) {
         setState(() => _openingId = null);
@@ -130,9 +146,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final query = _searchController.text.trim().toLowerCase();
 
     return _allEntries.where((entry) {
-      if (_selectedGrade != null && entry.gradeCode != _selectedGrade) return false;
-      if (_selectedSubject != null && entry.subjectCode != _selectedSubject) return false;
-      if (_selectedProject != null && entry.projectCode != _selectedProject) return false;
+      if (_selectedGrade != null && entry.gradeCode != _selectedGrade) {
+        return false;
+      }
+      if (_selectedSubject != null && entry.subjectCode != _selectedSubject) {
+        return false;
+      }
+      if (_selectedProject != null && entry.projectCode != _selectedProject) {
+        return false;
+      }
       if (_onlyVideo && !entry.hasVideo) return false;
       if (_onlyQuiz && !entry.hasQuiz) return false;
 
@@ -201,7 +223,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     for (final entry in _allEntries) {
       if (_selectedGrade != null && entry.gradeCode != _selectedGrade) continue;
-      if (_selectedSubject != null && entry.subjectCode != _selectedSubject) continue;
+      if (_selectedSubject != null && entry.subjectCode != _selectedSubject) {
+        continue;
+      }
       final code = entry.projectCode ?? '';
       if (seen.contains(code)) continue;
       seen.add(code);
@@ -218,8 +242,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Map<_MetaOption, Map<_MetaOption, Map<_MetaOption, List<EduViHistoryEntry>>>>
-      _buildGroupedData(List<EduViHistoryEntry> source) {
-    final grouped = <_MetaOption, Map<_MetaOption, Map<_MetaOption, List<EduViHistoryEntry>>>>{};
+  _buildGroupedData(List<EduViHistoryEntry> source) {
+    final grouped =
+        <
+          _MetaOption,
+          Map<_MetaOption, Map<_MetaOption, List<EduViHistoryEntry>>>
+        >{};
 
     for (final entry in source) {
       final grade = _MetaOption(
@@ -237,7 +265,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
       grouped.putIfAbsent(grade, () => {});
       grouped[grade]!.putIfAbsent(subject, () => {});
-      grouped[grade]![subject]!.putIfAbsent(project, () => <EduViHistoryEntry>[]);
+      grouped[grade]![subject]!.putIfAbsent(
+        project,
+        () => <EduViHistoryEntry>[],
+      );
       grouped[grade]![subject]![project]!.add(entry);
     }
 
@@ -259,10 +290,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
     final filtered = _filteredEntries;
     final grouped = _buildGroupedData(filtered);
-    final gradeKeys = grouped.keys.toList()..sort((a, b) => a.name.compareTo(b.name));
+    final gradeKeys = grouped.keys.toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
 
     return Scaffold(
       appBar: AppBar(
@@ -285,15 +316,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: isDark
-                ? const [
-                    Color(0xFF020617),
-                    Color(0xFF0B1220),
-                  ]
-                : const [
-                    Color(0xFFF3FAFF),
-                    Color(0xFFF8FAFC),
-                  ],
+            colors: const [Color(0xFFFFFFFF), Color(0xFFF8FAFC)],
           ),
         ),
         child: Column(
@@ -319,33 +342,34 @@ class _HistoryScreenState extends State<HistoryScreen> {
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : filtered.isEmpty
-                      ? const Center(child: Text('Chưa có lịch sử phù hợp bộ lọc.'))
-                      : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
-                          itemCount: gradeKeys.length,
-                          itemBuilder: (context, index) {
-                            final grade = gradeKeys[index];
-                            final subjects = grouped[grade]!;
-                            final subjectKeys = subjects.keys.toList()..sort((a, b) => a.name.compareTo(b.name));
+                  ? const Center(child: Text('Chưa có lịch sử phù hợp bộ lọc.'))
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+                      itemCount: gradeKeys.length,
+                      itemBuilder: (context, index) {
+                        final grade = gradeKeys[index];
+                        final subjects = grouped[grade]!;
+                        final subjectKeys = subjects.keys.toList()
+                          ..sort((a, b) => a.name.compareTo(b.name));
 
-                            final itemCount = subjects.values
-                                .expand((projectMap) => projectMap.values)
-                                .fold<int>(0, (sum, list) => sum + list.length);
+                        final itemCount = subjects.values
+                            .expand((projectMap) => projectMap.values)
+                            .fold<int>(0, (sum, list) => sum + list.length);
 
-                            return Card(
-                              margin: const EdgeInsets.only(bottom: 10),
-                              child: ExpansionTile(
-                                initiallyExpanded: true,
-                                title: Text('${grade.name} ($itemCount)'),
-                                subtitle: Text(grade.code ?? ''),
-                                children: [
-                                  for (final subject in subjectKeys)
-                                    _buildSubjectTile(subject, subjects[subject]!),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          child: ExpansionTile(
+                            initiallyExpanded: true,
+                            title: Text('${grade.name} ($itemCount)'),
+                            subtitle: Text(grade.code ?? ''),
+                            children: [
+                              for (final subject in subjectKeys)
+                                _buildSubjectTile(subject, subjects[subject]!),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
             ),
           ],
         ),
@@ -353,16 +377,25 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _buildSubjectTile(_MetaOption subject, Map<_MetaOption, List<EduViHistoryEntry>> projects) {
+  Widget _buildSubjectTile(
+    _MetaOption subject,
+    Map<_MetaOption, List<EduViHistoryEntry>> projects,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
-    final projectKeys = projects.keys.toList()..sort((a, b) => a.name.compareTo(b.name));
-    final itemCount = projects.values.fold<int>(0, (sum, list) => sum + list.length);
+    final projectKeys = projects.keys.toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+    final itemCount = projects.values.fold<int>(
+      0,
+      (sum, list) => sum + list.length,
+    );
 
     return Container(
       margin: const EdgeInsets.fromLTRB(10, 0, 10, 8),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.68),
-        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.45)),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.45),
+        ),
         borderRadius: BorderRadius.circular(10),
       ),
       child: ExpansionTile(
@@ -377,7 +410,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _buildProjectSection(_MetaOption project, List<EduViHistoryEntry> entries) {
+  Widget _buildProjectSection(
+    _MetaOption project,
+    List<EduViHistoryEntry> entries,
+  ) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 2, 12, 12),
       child: Column(
@@ -385,7 +421,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
         children: [
           Text(
             '${project.name} (${entries.length})',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 8),
           for (final entry in entries)
@@ -497,10 +535,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         value: value,
         decoration: InputDecoration(labelText: label),
         items: [
-          const DropdownMenuItem<String?>(
-            value: null,
-            child: Text('Tất cả'),
-          ),
+          const DropdownMenuItem<String?>(value: null, child: Text('Tất cả')),
           ...options.map(
             (option) => DropdownMenuItem<String?>(
               value: option.code,

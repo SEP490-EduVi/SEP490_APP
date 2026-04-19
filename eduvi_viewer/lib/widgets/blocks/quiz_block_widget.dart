@@ -62,9 +62,14 @@ class _QuizBlockWidgetState extends State<QuizBlockWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     if (_questions.isEmpty) {
-      return const Center(
-        child: Text('Không có câu hỏi', style: TextStyle(color: Colors.white)),
+      return Center(
+        child: Text(
+          'Không có câu hỏi',
+          style: TextStyle(color: colorScheme.onSurface),
+        ),
       );
     }
 
@@ -79,7 +84,8 @@ class _QuizBlockWidgetState extends State<QuizBlockWidget> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: Colors.white,
+        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.8)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -87,20 +93,20 @@ class _QuizBlockWidgetState extends State<QuizBlockWidget> {
         children: [
           Text(
             'Câu ${_currentQ + 1} / ${_questions.length}',
-            style: const TextStyle(color: Colors.white54, fontSize: 14),
+            style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14),
           ),
           const SizedBox(height: 12),
           Text(
             q['question'] as String? ?? '',
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: colorScheme.onSurface,
               fontSize: 20,
               fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 20),
           for (int i = 0; i < options.length; i++) ...[
-            _buildOption(i, options[i] as Map<String, dynamic>, correctIndex),
+            _buildOption(i, options[i] as Map<String, dynamic>, correctIndex, colorScheme),
             const SizedBox(height: 8),
           ],
           if (_showResult && q['explanation'] != null) ...[
@@ -108,12 +114,12 @@ class _QuizBlockWidgetState extends State<QuizBlockWidget> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.withAlpha(40),
+                color: colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 q['explanation'] as String,
-                style: const TextStyle(color: Colors.white70, fontSize: 15),
+                style: TextStyle(color: colorScheme.onPrimaryContainer, fontSize: 15),
               ),
             ),
           ],
@@ -136,20 +142,25 @@ class _QuizBlockWidgetState extends State<QuizBlockWidget> {
     );
   }
 
-  Widget _buildOption(int index, Map<String, dynamic> option, int correctIndex) {
-    Color bg = Colors.white.withAlpha(20);
-    Color border = Colors.white24;
+  Widget _buildOption(
+    int index,
+    Map<String, dynamic> option,
+    int correctIndex,
+    ColorScheme colorScheme,
+  ) {
+    Color bg = colorScheme.surfaceContainerHighest;
+    Color border = colorScheme.outlineVariant;
 
     if (_showResult) {
       if (index == correctIndex) {
-        bg = Colors.green.withAlpha(60);
-        border = Colors.green;
+        bg = const Color(0xFFE8F8EE);
+        border = const Color(0xFF16A34A);
       } else if (index == _selectedOption) {
-        bg = Colors.red.withAlpha(60);
-        border = Colors.red;
+        bg = const Color(0xFFFEECEC);
+        border = const Color(0xFFDC2626);
       }
     } else if (index == _selectedOption) {
-      border = Colors.blue;
+      border = colorScheme.primary;
     }
 
     return GestureDetector(
@@ -164,27 +175,30 @@ class _QuizBlockWidgetState extends State<QuizBlockWidget> {
         ),
         child: Text(
           option['text'] as String? ?? '',
-          style: const TextStyle(color: Colors.white, fontSize: 16),
+          style: TextStyle(color: colorScheme.onSurface, fontSize: 16),
         ),
       ),
     );
   }
 
   Widget _buildScoreCard() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: Colors.white,
+        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.8)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
-          const Icon(Icons.emoji_events, size: 64, color: Colors.amber),
+          const Icon(Icons.emoji_events, size: 64, color: Color(0xFF2563EB)),
           const SizedBox(height: 16),
           Text(
             '$_score / ${_questions.length}',
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: colorScheme.onSurface,
               fontSize: 36,
               fontWeight: FontWeight.bold,
             ),
@@ -192,7 +206,7 @@ class _QuizBlockWidgetState extends State<QuizBlockWidget> {
           const SizedBox(height: 8),
           Text(
             _score == _questions.length ? 'Xuất sắc!' : 'Cố gắng hơn nhé!',
-            style: const TextStyle(color: Colors.white70, fontSize: 18),
+            style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 18),
           ),
           const SizedBox(height: 24),
           ElevatedButton(
