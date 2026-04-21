@@ -1,0 +1,35 @@
+{
+  "packagePath": "",
+  "sessionId": "test-session-001",
+  "outputDir": "./test-output",
+  "mode": "new",
+  "gamePayload": {
+    "gameId": "contract-runner-001",
+    "templateId": "RUNNER_QUIZ",
+    "version": "1.0",
+    "settings": {
+      "mirror": false,
+      "timeLimitSec": 0,
+      "hoverHoldMs": 0,
+      "pinchThreshold": 0
+    },
+    "scene": { "title": "Contract Mode Test" },
+    "payload": {
+      "theme": "castle",
+      "characterName": "Mario",
+      "questions": [
+        {
+          "id": "q1",
+          "prompt": "Test question from contract",
+          "choices": [
+            { "id": "a", "text": "Wrong A" },
+            { "id": "b", "text": "Correct B" },
+            { "id": "c", "text": "Wrong C" },
+            { "id": "d", "text": "Wrong D" }
+          ],
+          "correctChoiceId": "b"
+        }
+      ]
+    }
+  }
+}

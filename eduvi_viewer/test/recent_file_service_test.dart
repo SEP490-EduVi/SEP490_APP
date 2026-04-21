@@ -131,4 +131,17 @@ void main() {
     expect(history.first.title, 'Legacy');
     expect(history.first.projectCode, 'P-LEGACY');
   });
+
+  test('saveGameOpened stores game entry with package type', () async {
+    await RecentFileService.saveGameOpened(
+      filePath: 'D:/tmp/game.eduvi',
+      title: 'Game test',
+    );
+
+    final history = await RecentFileService.getHistory();
+    expect(history, hasLength(1));
+    expect(history.first.packageType, 'game');
+    expect(history.first.slideCount, 0);
+    expect(history.first.title, 'Game test');
+  });
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,8 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:path/path.dart' as p;
 
+import '../../features/offline_core/domain/video_track_state.dart';
+import '../../features/offline_core/services/video_runtime_service.dart';
 import '../../models/block_model.dart';
 import '../../services/asset_service.dart';
 
@@ -13,6 +16,8 @@ class VideoBlockWidget extends StatefulWidget {
   final AssetService assetService;
   final bool presentationMode;
   final bool isActiveSlide;
+  final String? runtimeSessionId;
+  final String? runtimeTrackId;
 
   const VideoBlockWidget({
     super.key,
@@ -20,6 +25,8 @@ class VideoBlockWidget extends StatefulWidget {
     required this.assetService,
     this.presentationMode = false,
     this.isActiveSlide = true,
+    this.runtimeSessionId,
+    this.runtimeTrackId,
   });
 
   @override
@@ -27,15 +34,32 @@ class VideoBlockWidget extends StatefulWidget {
 }
 
 class _VideoBlockWidgetState extends State<VideoBlockWidget> {
+  final VideoRuntimeService _videoRuntime = const VideoRuntimeService();
   Player? _player;
   VideoController? _controller;
+  StreamSubscription<Duration>? _positionSubscription;
   bool _opened = false;
   String? _error;
   String? _loadedSource;
+  Duration _latestPosition = Duration.zero;
 
   bool get _isYouTube => widget.block.provider.toLowerCase() == 'youtube';
   bool get _shouldPlayInCurrentContext =>
       !widget.presentationMode || widget.isActiveSlide;
+  bool get _canPersistVideoState =>
+      widget.runtimeSessionId != null && widget.runtimeSessionId!.trim().isNotEmpty;
+
+  String get _trackId {
+    final fromWidget = widget.runtimeTrackId?.trim();
+    if (fromWidget != null && fromWidget.isNotEmpty) {
+      return fromWidget;
+    }
+    final fromBlock = widget.block.id.trim();
+    if (fromBlock.isNotEmpty) {
+      return fromBlock;
+    }
+    return widget.block.src;
+  }
 
   @override
   void initState() {
@@ -65,6 +89,7 @@ class _VideoBlockWidgetState extends State<VideoBlockWidget> {
     }
 
     await _player?.pause();
+    await _persistPlaybackState(paused: true);
   }
 
   Future<void> _ensurePlayerReady() async {
@@ -73,6 +98,9 @@ class _VideoBlockWidgetState extends State<VideoBlockWidget> {
     final player = Player();
     _player = player;
     _controller = VideoController(player);
+    _positionSubscription = player.stream.position.listen((position) {
+      _latestPosition = position;
+    });
 
     if (mounted) {
       setState(() {});
@@ -115,12 +143,14 @@ class _VideoBlockWidgetState extends State<VideoBlockWidget> {
 
         await player.open(Media(tmpFile.path));
         _loadedSource = src;
+        await _restorePlaybackStateIfAny();
         if (mounted) {
           setState(() => _opened = true);
         }
       } else if (src.startsWith('http')) {
         await player.open(Media(src));
         _loadedSource = src;
+        await _restorePlaybackStateIfAny();
         if (mounted) {
           setState(() => _opened = true);
         }
@@ -134,8 +164,51 @@ class _VideoBlockWidgetState extends State<VideoBlockWidget> {
 
   @override
   void dispose() {
+    unawaited(_persistPlaybackState(paused: true));
+    _positionSubscription?.cancel();
     _player?.dispose();
     super.dispose();
+  }
+
+  Future<void> _restorePlaybackStateIfAny() async {
+    if (!_canPersistVideoState) return;
+
+    try {
+      final state = await _videoRuntime.loadPlaybackState(
+        widget.runtimeSessionId!,
+        trackId: _trackId,
+      );
+      if (state == null) {
+        return;
+      }
+
+      if (state.positionMs > 0) {
+        final position = Duration(milliseconds: state.positionMs);
+        _latestPosition = position;
+        await _player?.seek(position);
+      }
+    } catch (_) {
+      // Keep playback smooth even if persisted state is malformed.
+    }
+  }
+
+  Future<void> _persistPlaybackState({required bool paused}) async {
+    if (!_canPersistVideoState) return;
+    if (!_opened) return;
+
+    try {
+      await _videoRuntime.savePlaybackState(
+        sessionId: widget.runtimeSessionId!,
+        state: VideoTrackState(
+          trackId: _trackId,
+          positionMs: _latestPosition.inMilliseconds,
+          paused: paused,
+          updatedAt: DateTime.now().toIso8601String(),
+        ),
+      );
+    } catch (_) {
+      // Ignore persistence failures to avoid interrupting playback UX.
+    }
   }
 
   @override

@@ -43,3 +43,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# EduVi release packages (large binaries, distributed separately)
+/release/
+/installer/*.zip
+/installer/*.exe
+/installer/_verify_extract*/
+*.zip
+*.exe

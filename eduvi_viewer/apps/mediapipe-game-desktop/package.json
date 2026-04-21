@@ -1,0 +1,42 @@
+{
+  "name": "mediapipe-game-desktop",
+  "version": "1.0.0",
+  "description": "EduVi MediaPipe Game Player - Offline Desktop",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "start:contract": "electron . --launch-contract=test-contract.json",
+    "package": "electron-builder --win portable",
+    "dist": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "build": {
+    "appId": "com.eduvi.game",
+    "productName": "EduVi Game",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "assets/mediapipe",
+        "to": "mediapipe"
+      }
+    ]
+  },
+  "dependencies": {
+    "@electron/asar": "^4.2.0"
+  }
+}

@@ -110,6 +110,7 @@ class EduViHistoryEntry {
   final Map<String, int> blockTypeCounts;
   final bool hasVideo;
   final bool hasQuiz;
+  final String packageType;
 
   const EduViHistoryEntry({
     required this.id,
@@ -129,6 +130,7 @@ class EduViHistoryEntry {
     required this.blockTypeCounts,
     required this.hasVideo,
     required this.hasQuiz,
+    required this.packageType,
   });
 
   factory EduViHistoryEntry.fromSchema({
@@ -154,6 +156,7 @@ class EduViHistoryEntry {
       blockTypeCounts: stats.blockTypeCounts,
       hasVideo: stats.hasVideo,
       hasQuiz: stats.hasQuiz,
+      packageType: 'slide',
     );
   }
 
@@ -176,6 +179,7 @@ class EduViHistoryEntry {
       blockTypeCounts: const {},
       hasVideo: false,
       hasQuiz: false,
+      packageType: 'slide',
     );
   }
 
@@ -197,6 +201,7 @@ class EduViHistoryEntry {
     'blockTypeCounts': blockTypeCounts,
     'hasVideo': hasVideo,
     'hasQuiz': hasQuiz,
+    'packageType': packageType,
   };
 
   factory EduViHistoryEntry.fromJson(Map<String, dynamic> json) {
@@ -229,8 +234,11 @@ class EduViHistoryEntry {
       blockTypeCounts: counts,
       hasVideo: json['hasVideo'] as bool? ?? false,
       hasQuiz: json['hasQuiz'] as bool? ?? false,
+      packageType: ((json['packageType'] as String?) ?? 'slide').toLowerCase(),
     );
   }
+
+  bool get isGame => packageType == 'game';
 }
 
 class _HistoryStats {
@@ -291,6 +299,15 @@ String _buildHistoryId(String filePath) {
   return '${DateTime.now().microsecondsSinceEpoch}_${filePath.hashCode}';
 }
 
+String _fallbackTitleFromPath(String filePath) {
+  final normalized = filePath.replaceAll('\\', '/');
+  final parts = normalized.split('/').where((part) => part.isNotEmpty).toList();
+  if (parts.isEmpty) {
+    return 'Game offline';
+  }
+  return parts.last;
+}
+
 class RecentFileService {
   static Future<void> saveLastOpened({
     required String filePath,
@@ -302,6 +319,38 @@ class RecentFileService {
 
     final history = await _readHistoryEntries(prefs);
     history.insert(0, EduViHistoryEntry.fromSchema(filePath: filePath, schema: schema));
+    final trimmed = _trimHistory(history, _maxHistoryEntries);
+    await _writeHistoryEntries(prefs, trimmed);
+  }
+
+  static Future<void> saveGameOpened({
+    required String filePath,
+    String? title,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final history = await _readHistoryEntries(prefs);
+    final now = DateTime.now().toIso8601String();
+
+    history.insert(
+      0,
+      EduViHistoryEntry(
+        id: _buildHistoryId(filePath),
+        filePath: filePath,
+        openedAt: now,
+        title: (title != null && title.trim().isNotEmpty)
+            ? title.trim()
+            : _fallbackTitleFromPath(filePath),
+        description: 'Game offline',
+        createdAt: now,
+        updatedAt: now,
+        slideCount: 0,
+        blockTypeCounts: const {},
+        hasVideo: false,
+        hasQuiz: false,
+        packageType: 'game',
+      ),
+    );
+
     final trimmed = _trimHistory(history, _maxHistoryEntries);
     await _writeHistoryEntries(prefs, trimmed);
   }

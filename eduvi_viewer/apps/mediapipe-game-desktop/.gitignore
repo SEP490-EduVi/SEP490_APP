@@ -1,0 +1,5 @@
+node_modules/
+dist/
+assets/mediapipe/wasm/
+assets/mediapipe/models/
+*.log
