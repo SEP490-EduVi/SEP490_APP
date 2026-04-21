@@ -1,0 +1,17 @@
+{
+  "name": "eduvi-electron-game-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Offline-only Electron runtime for eduvi game packages",
+  "main": "dist/electron-main/app.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "electron .",
+    "dev": "tsc -w -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "electron": "^31.2.0",
+    "typescript": "^5.8.0"
+  }
+}

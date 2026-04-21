@@ -11,6 +11,7 @@ class SlideViewer extends StatelessWidget {
   final bool presentationMode;
   final bool isActiveSlide;
   final bool allowUserInteraction;
+  final String? runtimeSessionId;
 
   const SlideViewer({
     super.key,
@@ -20,6 +21,7 @@ class SlideViewer extends StatelessWidget {
     this.presentationMode = false,
     this.isActiveSlide = true,
     this.allowUserInteraction = true,
+    this.runtimeSessionId,
   });
 
   @override
@@ -95,6 +97,7 @@ class SlideViewer extends StatelessWidget {
                                   onNextSlide: onNextSlide,
                                   presentationMode: presentationMode,
                                   isActiveSlide: isActiveSlide,
+                                  runtimeSessionId: runtimeSessionId,
                                 ),
                               ),
                           ],
@@ -116,6 +119,7 @@ class SlideViewer extends StatelessWidget {
                                 onNextSlide: onNextSlide,
                                 presentationMode: presentationMode,
                                 isActiveSlide: isActiveSlide,
+                                runtimeSessionId: runtimeSessionId,
                               ),
                             ),
                         ],

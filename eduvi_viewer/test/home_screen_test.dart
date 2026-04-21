@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 import 'package:eduvi_viewer/models/block_model.dart';
 import 'package:eduvi_viewer/models/card_model.dart';
@@ -56,41 +57,157 @@ void main() {
     );
   }
 
-  testWidgets('home screen shows history immediately without opening history page', (
+  testWidgets(
+    'home screen shows history immediately without opening history page',
+    (tester) async {
+      await RecentFileService.saveLastOpened(
+        filePath: 'D:/tmp/a.eduvi',
+        schema: buildSchema(title: 'Bai 1'),
+      );
+      await RecentFileService.saveLastOpened(
+        filePath: 'D:/tmp/b.eduvi',
+        schema: buildSchema(title: 'Bai 2'),
+      );
+
+      await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Lịch sử gần đây'), findsOneWidget);
+      expect(find.text('Bai 2'), findsOneWidget);
+      expect(find.text('Bai 1'), findsOneWidget);
+      expect(find.text('Xem lịch sử'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'home screen shows desktop concept sections with sidebar and recent list',
+    (tester) async {
+      await RecentFileService.saveLastOpened(
+        filePath: 'D:/tmp/c.eduvi',
+        schema: buildSchema(title: 'Bai concept'),
+      );
+
+      await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('home-sidebar-logo')), findsOneWidget);
+      expect(find.text('Trang chủ'), findsOneWidget);
+      expect(find.byIcon(Icons.home_rounded), findsNothing);
+      expect(find.text('Mở file'), findsOneWidget);
+      expect(find.text('Làm mới'), findsNothing);
+      expect(find.byIcon(Icons.refresh_rounded), findsNothing);
+      expect(find.text('Lịch sử gần đây'), findsOneWidget);
+      expect(find.text('Bai concept'), findsOneWidget);
+    },
+  );
+
+  testWidgets('home history list shows slide and game icons by package type', (
     tester,
   ) async {
-    await RecentFileService.saveLastOpened(
-      filePath: 'D:/tmp/a.eduvi',
-      schema: buildSchema(title: 'Bai 1'),
-    );
-    await RecentFileService.saveLastOpened(
-      filePath: 'D:/tmp/b.eduvi',
-      schema: buildSchema(title: 'Bai 2'),
-    );
+    final now = DateTime.now().toIso8601String();
+    final payload = jsonEncode([
+      {
+        'id': 'slide-1',
+        'filePath': 'D:/tmp/slide.eduvi',
+        'openedAt': now,
+        'title': 'Slide item',
+        'description': '',
+        'createdAt': now,
+        'updatedAt': now,
+        'slideCount': 1,
+        'blockTypeCounts': {'TEXT': 1},
+        'hasVideo': false,
+        'hasQuiz': false,
+        'packageType': 'slide',
+      },
+      {
+        'id': 'game-1',
+        'filePath': 'D:/tmp/game.eduvi',
+        'openedAt': now,
+        'title': 'Game item',
+        'description': '',
+        'createdAt': now,
+        'updatedAt': now,
+        'slideCount': 0,
+        'blockTypeCounts': {},
+        'hasVideo': false,
+        'hasQuiz': false,
+        'packageType': 'game',
+      },
+    ]);
+
+    SharedPreferences.setMockInitialValues({
+      'eduvi_open_history_v2': payload,
+    });
 
     await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Lịch sử gần đây'), findsOneWidget);
-    expect(find.text('Bai 2'), findsOneWidget);
-    expect(find.text('Bai 1'), findsOneWidget);
-    expect(find.text('Xem lịch sử'), findsNothing);
+    expect(find.byIcon(Icons.slideshow_rounded), findsWidgets);
+    expect(find.byIcon(Icons.sports_esports_rounded), findsOneWidget);
   });
 
-  testWidgets('home screen shows desktop concept sections with sidebar and recent list', (
+  testWidgets('home history list normalizes legacy technical game title', (
     tester,
   ) async {
-    await RecentFileService.saveLastOpened(
-      filePath: 'D:/tmp/c.eduvi',
-      schema: buildSchema(title: 'Bai concept'),
-    );
+    final now = DateTime.now().toIso8601String();
+    final payload = jsonEncode([
+      {
+        'id': 'game-legacy-1',
+        'filePath': 'C:/Users/nguye/Downloads/bai-1-game-20260420-141726.eduvi',
+        'openedAt': now,
+        'title': 'Game b_i_1',
+        'description': '',
+        'createdAt': now,
+        'updatedAt': now,
+        'slideCount': 0,
+        'blockTypeCounts': {},
+        'hasVideo': false,
+        'hasQuiz': false,
+        'packageType': 'game',
+      },
+    ]);
+
+    SharedPreferences.setMockInitialValues({
+      'eduvi_open_history_v2': payload,
+    });
 
     await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Trang chủ'), findsWidgets);
-    expect(find.text('Mở file'), findsOneWidget);
-    expect(find.text('Lịch sử gần đây'), findsOneWidget);
-    expect(find.text('Bai concept'), findsOneWidget);
+    expect(find.text('bai-1-game-20260420-141726'), findsOneWidget);
+    expect(find.text('Game b_i_1'), findsNothing);
+  });
+
+  testWidgets('home history list normalizes legacy technical game title', (
+    tester,
+  ) async {
+    final now = DateTime.now().toIso8601String();
+    final payload = jsonEncode([
+      {
+        'id': 'game-legacy-1',
+        'filePath': 'C:/Users/nguye/Downloads/bai-1-game-20260420-141726.eduvi',
+        'openedAt': now,
+        'title': 'Game b_i_1',
+        'description': '',
+        'createdAt': now,
+        'updatedAt': now,
+        'slideCount': 0,
+        'blockTypeCounts': {},
+        'hasVideo': false,
+        'hasQuiz': false,
+        'packageType': 'game',
+      },
+    ]);
+
+    SharedPreferences.setMockInitialValues({
+      'eduvi_open_history_v2': payload,
+    });
+
+    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('bai-1-game-20260420-141726'), findsOneWidget);
+    expect(find.text('Game b_i_1'), findsNothing);
   });
 }

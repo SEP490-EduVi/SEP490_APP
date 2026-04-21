@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Trinh chinh sua game giao vien (Mock)</title>
+    <style>
+      body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background: #f8fafc; color: #0f172a; }
+      .root { padding: 16px; }
+      .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+      .stage { position: relative; width: min(960px, 100%); aspect-ratio: 16 / 9; border: 1px solid #cbd5e1; border-radius: 12px; overflow: hidden; margin-top: 12px; background: #fff; }
+      video, canvas { position: absolute; inset: 0; width: 100%; height: 100%; transform: scaleX(-1); }
+      .modal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+      .modal.hidden { display: none; }
+      .backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
+      .panel { position: relative; width: min(520px, 92vw); background: #fff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 16px; }
+      label { display: block; font-size: 12px; opacity: 0.8; margin-bottom: 6px; }
+      input, select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; color: #0f172a; }
+      button { padding: 10px 12px; border-radius: 10px; border: 1px solid #cbd5e1; background: #f1f5f9; color: #0f172a; cursor: pointer; }
+      .status { margin-top: 10px; font-size: 13px; opacity: 0.85; }
+    </style>
+  </head>
+  <body>
+    <div class="root" id="root">
+      <div class="row">
+        <button data-role="create-game-btn">Tao game</button>
+        <div class="status" data-role="engine-status"></div>
+      </div>
+
+      <div class="stage">
+        <video data-role="video" autoplay playsinline muted></video>
+        <canvas data-role="canvas"></canvas>
+      </div>
+
+      <div class="modal hidden" data-role="config-modal">
+        <div class="backdrop" data-role="config-backdrop"></div>
+        <div class="panel">
+          <div class="row" style="justify-content: space-between;">
+            <strong>Cau hinh game</strong>
+            <button data-role="close-modal-btn">Dong</button>
+          </div>
+
+          <div style="margin-top: 12px;">
+            <label>Mau game</label>
+            <select data-role="template-select">
+              <option value="HOVER_SELECT">HOVER_SELECT</option>
+              <option value="DRAG_DROP">DRAG_DROP</option>
+              <option value="SNAKE_DUEL">SNAKE_DUEL</option>
+            </select>
+          </div>
+
+          <div style="margin-top: 12px;">
+            <label>Thoi gian (giay)</label>
+            <input data-role="time-limit-input" type="number" value="60" min="5" max="600" />
+          </div>
+
+          <div style="margin-top: 12px;">
+            <label>Giu hover (ms)</label>
+            <input data-role="hover-hold-input" type="number" value="2000" min="250" max="5000" />
+          </div>
+
+          <div style="margin-top: 12px;">
+            <label>Nguong chum tay</label>
+            <input data-role="pinch-threshold-input" type="number" value="0.045" min="0.005" max="0.2" step="0.001" />
+          </div>
+
+          <div class="row" style="margin-top: 14px; justify-content: flex-end;">
+            <button data-role="save-game-btn">Luu game</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initTeacherGameEditor } from './editor.js';
+      initTeacherGameEditor({ rootEl: document.getElementById('root') });
+    </script>
+  </body>
+</html>

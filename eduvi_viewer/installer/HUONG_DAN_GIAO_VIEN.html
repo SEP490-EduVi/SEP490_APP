@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hướng Dẫn Sử Dụng EduVi Viewer — Dành Cho Giáo Viên</title>
+    <style>
+      :root {
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --success: #16a34a;
+        --warning: #d97706;
+        --danger: #dc2626;
+        --bg: #f8fafc;
+        --card: #ffffff;
+        --border: #e2e8f0;
+        --text: #0f172a;
+        --muted: #64748b;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        color: var(--text);
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { background: var(--bg); }
+
+      /* ── Header ── */
+      .header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #7c3aed 100%);
+        color: #fff;
+        padding: 48px 32px 40px;
+        text-align: center;
+      }
+      .header .logo {
+        font-size: 42px;
+        font-weight: 800;
+        letter-spacing: -1px;
+        margin-bottom: 8px;
+      }
+      .header .logo span { color: #93c5fd; }
+      .header .subtitle {
+        font-size: 18px;
+        opacity: 0.85;
+        margin-bottom: 16px;
+      }
+      .header .version-badge {
+        display: inline-block;
+        background: rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.3);
+        border-radius: 999px;
+        padding: 4px 16px;
+        font-size: 13px;
+      }
+
+      /* ── Layout ── */
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px 24px 80px;
+      }
+
+      /* ── Section ── */
+      .section { margin-bottom: 40px; }
+      .section-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 10px;
+      }
+      .section-title .num {
+        background: var(--primary);
+        color: #fff;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        font-weight: 800;
+        flex-shrink: 0;
+      }
+
+      /* ── Card ── */
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 8px rgba(15,23,42,0.05);
+      }
+
+      /* ── Steps ── */
+      .steps { list-style: none; counter-reset: step; }
+      .steps li {
+        counter-increment: step;
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .steps li:last-child { border-bottom: none; }
+      .steps li::before {
+        content: counter(step);
+        background: var(--primary);
+        color: #fff;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .steps li .text { line-height: 1.6; font-size: 15px; }
+      .steps li .text strong { color: var(--primary-dark); }
+      .steps li .note {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      /* ── Alert boxes ── */
+      .alert {
+        border-radius: 12px;
+        padding: 14px 18px;
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 12px;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+      }
+      .alert-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+      .alert-warning { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; }
+      .alert-info    { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; }
+      .alert-success { background: #f0fdf4; border: 1px solid #86efac; color: #14532d; }
+
+      /* ── Game type cards ── */
+      .game-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 16px;
+        margin-top: 12px;
+      }
+      .game-card {
+        border-radius: 14px;
+        padding: 20px;
+        border: 2px solid transparent;
+      }
+      .game-card-hover  { background: #eff6ff; border-color: #93c5fd; }
+      .game-card-drag   { background: #f0fdf4; border-color: #86efac; }
+      .game-card-snake  { background: #fdf4ff; border-color: #d8b4fe; }
+      .game-card .icon  { font-size: 32px; margin-bottom: 8px; }
+      .game-card .name  { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+      .game-card .desc  { font-size: 13px; color: var(--muted); line-height: 1.5; }
+      .game-card .key-hint {
+        margin-top: 10px;
+        font-size: 12px;
+        color: #7c3aed;
+        background: #f3e8ff;
+        border-radius: 6px;
+        padding: 4px 8px;
+        display: inline-block;
+      }
+
+      /* ── File type badge ── */
+      .badge {
+        display: inline-block;
+        border-radius: 6px;
+        padding: 2px 10px;
+        font-size: 12px;
+        font-weight: 700;
+        margin-right: 6px;
+      }
+      .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+      .badge-green  { background: #dcfce7; color: #15803d; }
+      .badge-purple { background: #f3e8ff; color: #7c3aed; }
+
+      /* ── Keyboard keys ── */
+      kbd {
+        display: inline-block;
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        border-bottom: 3px solid #94a3b8;
+        border-radius: 6px;
+        padding: 2px 8px;
+        font-size: 13px;
+        font-family: monospace;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      /* ── Table ── */
+      table { width: 100%; border-collapse: collapse; font-size: 14px; }
+      th {
+        background: #f1f5f9;
+        padding: 10px 14px;
+        text-align: left;
+        font-weight: 600;
+        border-bottom: 2px solid var(--border);
+      }
+      td {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+        line-height: 1.5;
+      }
+      tr:last-child td { border-bottom: none; }
+
+      /* ── Footer ── */
+      .footer {
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+        padding: 32px 0 16px;
+        border-top: 1px solid var(--border);
+        margin-top: 40px;
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">Edu<span>Vi</span> Viewer</div>
+      <div class="subtitle">Hướng dẫn sử dụng dành cho Giáo Viên</div>
+      <div class="version-badge">Phiên bản 1.1.0 &nbsp;|&nbsp; Windows</div>
+    </div>
+
+    <div class="container">
+
+      <!-- Intro -->
+      <div class="alert alert-info" style="margin-bottom: 32px;">
+        <div class="alert-icon">📋</div>
+        <div>
+          <strong>EduVi Viewer</strong> là ứng dụng desktop giúp giáo viên mở và trình chiếu
+          bài học (<code>.eduvi</code>) gồm hai loại: <strong>Bài trình chiếu</strong> và
+          <strong>Trò chơi học tập</strong>. Ứng dụng chạy hoàn toàn
+          <strong>offline</strong> — không cần Internet sau khi cài đặt.
+        </div>
+      </div>
+
+      <!-- Section 1: Install -->
+      <div class="section">
+        <div class="section-title"><span class="num">1</span> Cài đặt ứng dụng</div>
+        <div class="card">
+          <ul class="steps">
+            <li>
+              <div class="text">
+                Trong thư mục này, tìm và chạy file
+                <strong>EduViViewer-Setup-1.1.0.exe</strong>
+                <div class="note">Nếu có file <em>.zip</em>, hãy giải nén trước rồi mới chạy file <em>.exe</em>.</div>
+              </div>
+            </li>
+            <li>
+              <div class="text">
+                Nếu Windows hiển thị hộp thoại cảnh báo <em>"Windows protected your PC"</em>:<br/>
+                → Bấm <strong>More info</strong> → <strong>Run anyway</strong>
+                <div class="note">Đây là cảnh báo bình thường cho phần mềm chưa được ký chứng chỉ thương mại.</div>
+              </div>
+            </li>
+            <li>
+              <div class="text">
+                Trong bộ cài đặt: bấm <strong>Next</strong> → <strong>Install</strong> → <strong>Finish</strong>
+                <div class="note">Ứng dụng sẽ được cài vào thư mục người dùng, không cần quyền Admin.</div>
+              </div>
+            </li>
+            <li>
+              <div class="text">
+                Sau khi cài xong, biểu tượng <strong>EduVi Viewer</strong> xuất hiện trên Desktop.
+                Bấm đúp để mở.
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div class="alert alert-success">
+          <div class="alert-icon">✅</div>
+          <div>
+            File <code>.eduvi</code> sẽ được <strong>liên kết tự động</strong> với EduVi Viewer sau khi cài đặt.
+            Chỉ cần bấm đúp vào file <code>.eduvi</code> là mở ngay — không cần thao tác thêm.
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Open file -->
+      <div class="section">
+        <div class="section-title"><span class="num">2</span> Mở file bài học (.eduvi)</div>
+        <div class="card">
+          <p style="font-size:15px; margin-bottom:14px; line-height:1.7;">
+            EduVi Viewer hỗ trợ <strong>2 loại file</strong> đều có đuôi <code>.eduvi</code>:
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Loại file</th>
+                <th>Nội dung</th>
+                <th>Cách mở</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-blue">Slide</span> Bài trình chiếu</td>
+                <td>Các slide nội dung bài học với văn bản, hình ảnh, video, biểu đồ</td>
+                <td>Mở trong ứng dụng, dùng phím <kbd>→</kbd> <kbd>←</kbd> để chuyển slide</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-green">Game</span> Trò chơi học tập</td>
+                <td>Bài tập tương tác dạng trò chơi cho học sinh tham gia</td>
+                <td>Ứng dụng tự nhận diện và mở giao diện game ngay lập tức</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <strong style="font-size:15px;">Ba cách mở file:</strong>
+          <ul class="steps" style="margin-top:12px;">
+            <li>
+              <div class="text">
+                <strong>Kéo thả (nhanh nhất):</strong> Kéo file <code>.eduvi</code> từ File Explorer thẳng vào cửa sổ EduVi Viewer
+              </div>
+            </li>
+            <li>
+              <div class="text">
+                <strong>Bấm đúp file:</strong> Bấm đúp vào file <code>.eduvi</code> bất kỳ (chỉ cần đã cài ứng dụng)
+              </div>
+            </li>
+            <li>
+              <div class="text">
+                <strong>Nút Mở file:</strong> Trong ứng dụng, bấm nút <strong>Mở file</strong> hoặc nhấn <kbd>Ctrl</kbd>+<kbd>O</kbd>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Section 3: Presentation -->
+      <div class="section">
+        <div class="section-title"><span class="num">3</span> Trình chiếu bài học (Slide)</div>
+        <div class="card">
+          <table>
+            <thead>
+              <tr><th>Thao tác</th><th>Phím tắt</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Slide tiếp theo</td><td><kbd>→</kbd> hoặc <kbd>Space</kbd></td></tr>
+              <tr><td>Slide trước đó</td><td><kbd>←</kbd></td></tr>
+              <tr><td>Slide đầu tiên</td><td><kbd>Home</kbd></td></tr>
+              <tr><td>Slide cuối cùng</td><td><kbd>End</kbd></td></tr>
+              <tr><td>Toàn màn hình</td><td><kbd>F11</kbd> hoặc <kbd>F</kbd></td></tr>
+              <tr><td>Thoát toàn màn hình</td><td><kbd>Esc</kbd></td></tr>
+              <tr><td>Quay về màn hình chính</td><td><kbd>Esc</kbd> (khi không toàn màn hình)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="alert alert-info">
+          <div class="alert-icon">💡</div>
+          <div>
+            Ứng dụng <strong>tự lưu vị trí slide</strong> bạn đang xem. Lần sau mở lại cùng file,
+            ứng dụng sẽ hỏi có muốn tiếp tục từ slide đã xem không.
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: Game types -->
+      <div class="section">
+        <div class="section-title"><span class="num">4</span> Các loại trò chơi học tập</div>
+
+        <div class="card">
+          <p style="font-size:14px; color:var(--muted); margin-bottom:16px;">
+            Hệ thống hỗ trợ 3 loại trò chơi. Ứng dụng tự nhận diện loại game từ file <code>.eduvi</code>
+            và hiển thị giao diện phù hợp.
+          </p>
+          <div class="game-grid">
+
+            <div class="game-card game-card-hover">
+              <div class="icon">👆</div>
+              <div class="name">Hover &amp; Select</div>
+              <div class="desc">
+                Học sinh di tay trước camera (MediaPipe) hoặc click chuột để chọn đáp án đúng
+                trong 4 ô hiển thị trên màn hình.
+              </div>
+              <div class="key-hint">Camera tay / Click chuột</div>
+            </div>
+
+            <div class="game-card game-card-drag">
+              <div class="icon">🔀</div>
+              <div class="name">Drag &amp; Drop</div>
+              <div class="desc">
+                Học sinh ghép nối các khái niệm với định nghĩa tương ứng bằng cách kéo thả
+                hoặc click chọn rồi click vùng đích.
+              </div>
+              <div class="key-hint">Kéo thả / Click ghép nối</div>
+            </div>
+
+            <div class="game-card game-card-snake">
+              <div class="icon">🐍</div>
+              <div class="name">Snake Duel</div>
+              <div class="desc">
+                Trò chơi 2 người cùng màn hình. Mỗi người dùng bàn phím riêng để trả lời
+                câu hỏi, thi điểm với nhau.
+              </div>
+              <div class="key-hint">P1: phím 1 2 3 4 &nbsp;|&nbsp; P2: phím Q W E R</div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="alert alert-info">
+          <div class="alert-icon">🎮</div>
+          <div>
+            <strong>Snake Duel</strong> cần <strong>2 học sinh ngồi cùng một máy tính</strong>,
+            mỗi người dùng một bên bàn phím.<br/>
+            Người chơi 1 (màu đỏ): phím <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd><br/>
+            Người chơi 2 (màu xanh): phím <kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 5: Workflow -->
+      <div class="section">
+        <div class="section-title"><span class="num">5</span> Quy trình sử dụng điển hình trong lớp học</div>
+        <div class="card">
+          <ul class="steps">
+            <li>
+              <div class="text">
+                <strong>Trước giờ học:</strong> Nhận file <code>.eduvi</code> từ hệ thống EduVi
+                (slide bài học hoặc game). Lưu vào máy tính của phòng học.
+              </div>
+            </li>
+            <li>
+              <div class="text">
+                <strong>Bắt đầu tiết học:</strong> Bấm đúp vào file <code>.eduvi</code> để mở.
+                Ứng dụng tự nhận diện đây là <em>slide</em> hay <em>game</em>.
+              </div>
+            </li>
+            <li>
+              <div class="text">
+                <strong>Trình chiếu nội dung:</strong> Dùng phím <kbd>→</kbd> / <kbd>←</kbd>
+                chuyển slide. Nhấn <kbd>F11</kbd> để bật toàn màn hình khi chiếu lên màn hình lớn.
+              </div>
+            </li>
+            <li>
+              <div class="text">
+                <strong>Hoạt động game:</strong> Mở file game <code>.eduvi</code> tương ứng.
+                Mời 1–2 học sinh lên tương tác trực tiếp với ứng dụng.
+              </div>
+            </li>
+            <li>
+              <div class="text">
+                <strong>Kết thúc:</strong> Nhấn <kbd>Esc</kbd> để thoát về màn hình chính.
+                Lịch sử file đã mở được lưu tự động.
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Section 6: Troubleshoot -->
+      <div class="section">
+        <div class="section-title"><span class="num">6</span> Xử lý sự cố thường gặp</div>
+        <div class="card">
+          <table>
+            <thead>
+              <tr><th>Vấn đề</th><th>Cách xử lý</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Windows báo lỗi "Windows protected your PC"</td>
+                <td>Bấm <strong>More info</strong> → <strong>Run anyway</strong></td>
+              </tr>
+              <tr>
+                <td>Mở file <code>.eduvi</code> không có phản ứng</td>
+                <td>Bấm phải file → <strong>Open with</strong> → chọn <strong>EduVi Viewer</strong></td>
+              </tr>
+              <tr>
+                <td>Game mở ra nhưng không có nội dung</td>
+                <td>File game có thể bị hỏng. Xuất lại file từ hệ thống EduVi và thử lại.</td>
+              </tr>
+              <tr>
+                <td>Hình ảnh / video trong slide không hiển thị</td>
+                <td>
+                  Đảm bảo file <code>.eduvi</code> được xuất đầy đủ (có đính kèm asset).
+                  Không di chuyển hoặc đổi tên file sau khi xuất.
+                </td>
+              </tr>
+              <tr>
+                <td>Camera không nhận diện tay (Hover Select)</td>
+                <td>
+                  Kiểm tra camera có được kết nối và không bị ứng dụng khác chiếm dùng.
+                  Khởi động lại ứng dụng.
+                </td>
+              </tr>
+              <tr>
+                <td>Ứng dụng bị treo hoặc không phản hồi</td>
+                <td>
+                  Đóng ứng dụng bằng <kbd>Alt</kbd>+<kbd>F4</kbd>, mở lại bình thường.
+                  Nếu vẫn lỗi, liên hệ bộ phận kỹ thuật EduVi.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="alert alert-warning">
+          <div class="alert-icon">⚠️</div>
+          <div>
+            <strong>Lưu ý quan trọng:</strong> File <code>.eduvi</code> là định dạng riêng của EduVi.
+            Không thay đổi phần mở rộng file hoặc chỉnh sửa nội dung file bằng phần mềm khác —
+            có thể làm hỏng dữ liệu.
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 7: Contact -->
+      <div class="section">
+        <div class="section-title"><span class="num">7</span> Hỗ trợ</div>
+        <div class="card">
+          <p style="font-size:15px; line-height:1.8;">
+            Nếu gặp vấn đề khi sử dụng, vui lòng liên hệ đội ngũ kỹ thuật EduVi để được hỗ trợ.<br/>
+            Cung cấp thông tin sau khi liên hệ:
+          </p>
+          <ul style="margin: 14px 0 0 20px; font-size:14px; line-height:2;">
+            <li>Phiên bản ứng dụng: <strong>1.1.0</strong></li>
+            <li>Hệ điều hành Windows (Windows 10 / 11)</li>
+            <li>Mô tả ngắn gọn vấn đề gặp phải</li>
+            <li>Tên file <code>.eduvi</code> đang dùng (nếu liên quan đến file cụ thể)</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="footer">
+      EduVi Viewer v1.1.0 &nbsp;|&nbsp; Dành cho Giáo Viên &nbsp;|&nbsp; Tài liệu này có thể in ra hoặc chia sẻ tự do.
+    </div>
+
+  </body>
+</html>

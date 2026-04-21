@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../features/game_player/game_block_widget.dart';
 import '../../models/block_model.dart';
 import '../../services/asset_service.dart';
 import 'fill_blank_block_widget.dart';
@@ -17,6 +18,7 @@ class BlockDispatcher extends StatelessWidget {
   final VoidCallback? onNextSlide;
   final bool presentationMode;
   final bool isActiveSlide;
+  final String? runtimeSessionId;
 
   const BlockDispatcher({
     super.key,
@@ -25,6 +27,7 @@ class BlockDispatcher extends StatelessWidget {
     this.onNextSlide,
     this.presentationMode = false,
     this.isActiveSlide = true,
+    this.runtimeSessionId,
   });
 
   @override
@@ -38,6 +41,8 @@ class BlockDispatcher extends StatelessWidget {
         assetService: assetService,
         presentationMode: presentationMode,
         isActiveSlide: isActiveSlide,
+        runtimeSessionId: runtimeSessionId,
+        runtimeTrackId: block.id,
       ),
       'MATERIAL' => MaterialBlockWidget(
         block: block,
@@ -48,6 +53,10 @@ class BlockDispatcher extends StatelessWidget {
       'QUIZ' => QuizBlockWidget(block: block, onGoNextSlide: onNextSlide),
       'FLASHCARD' => FlashcardBlockWidget(block: block),
       'FILL_BLANK' => FillBlankBlockWidget(block: block),
+      'GAME' => GameBlockWidget(
+        block: block,
+        runtimeSessionId: runtimeSessionId,
+      ),
       _ => Container(
         padding: const EdgeInsets.all(8),
         color: Colors.grey.shade200,

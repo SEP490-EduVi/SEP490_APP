@@ -13,12 +13,14 @@ class PresentationScreen extends StatefulWidget {
   final EduViSchema schema;
   final int initialSlideIndex;
   final ValueChanged<int>? onExitSlideChanged;
+  final String? runtimeSessionId;
 
   const PresentationScreen({
     super.key,
     required this.schema,
     this.initialSlideIndex = 0,
     this.onExitSlideChanged,
+    this.runtimeSessionId,
   });
 
   @override
@@ -176,6 +178,7 @@ class _PresentationScreenState extends State<PresentationScreen> {
                     presentationMode: true,
                     isActiveSlide: index == _currentPage,
                     allowUserInteraction: card.hasUserInteractiveBlocks,
+                    runtimeSessionId: widget.runtimeSessionId,
                   );
                 },
               ),

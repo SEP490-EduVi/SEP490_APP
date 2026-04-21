@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; media-src 'self' mediastream:; worker-src 'self' blob:; img-src 'self' data:; connect-src 'self' https://cdn.jsdelivr.net https://storage.googleapis.com file:">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduVi Game Player</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- ═══ LAUNCHER ═══ -->
+  <section id="launcher" class="hidden">
+    <div class="launcher-header">
+      <img class="eduvi-brand-logo" src="../../assets/eduvi_logo.png" alt="EduVi logo">
+      <h1 class="launcher-title">EduVi Game Player</h1>
+      <p class="launcher-subtitle">Đang chuẩn bị trò chơi...</p>
+    </div>
+    <div class="launcher-footer">
+      <span id="app-version"></span>
+    </div>
+  </section>
+
+  <!-- ═══ STAGE ═══ -->
+  <section id="stage">
+    <div class="stage-toolbar">
+      <img class="eduvi-brand-logo stage-logo" src="../../assets/eduvi_logo.png" alt="EduVi logo">
+      <span id="stage-title" class="stage-title"></span>
+      <button id="btn-fullscreen" class="btn-icon" title="Toàn màn hình">⛶</button>
+    </div>
+    <div id="stage-body" class="stage-body">
+      <video id="game-video" autoplay playsinline></video>
+      <canvas id="game-canvas"></canvas>
+    </div>
+  </section>
+
+  <!-- ═══ RESULT ═══ -->
+  <section id="result" class="hidden">
+    <div class="result-card">
+      <h2 class="result-title">🏆 Kết quả</h2>
+      <div id="result-score" class="result-score"></div>
+      <div id="result-detail" class="result-detail"></div>
+    </div>
+  </section>
+
+  <script type="module" src="renderer.js"></script>
+</body>
+</html>

@@ -10,6 +10,7 @@ class LayoutRenderer extends StatelessWidget {
   final VoidCallback? onNextSlide;
   final bool presentationMode;
   final bool isActiveSlide;
+  final String? runtimeSessionId;
 
   const LayoutRenderer({
     super.key,
@@ -18,6 +19,7 @@ class LayoutRenderer extends StatelessWidget {
     this.onNextSlide,
     this.presentationMode = false,
     this.isActiveSlide = true,
+    this.runtimeSessionId,
   });
 
   @override
@@ -35,6 +37,7 @@ class LayoutRenderer extends StatelessWidget {
                 onNextSlide: onNextSlide,
                 presentationMode: presentationMode,
                 isActiveSlide: isActiveSlide,
+                runtimeSessionId: runtimeSessionId,
               ),
             ),
         ],
@@ -69,6 +72,7 @@ class LayoutRenderer extends StatelessWidget {
                       onNextSlide: onNextSlide,
                       presentationMode: presentationMode,
                       isActiveSlide: isActiveSlide,
+                      runtimeSessionId: runtimeSessionId,
                     ),
                   ),
               ],

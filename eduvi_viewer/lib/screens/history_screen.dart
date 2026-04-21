@@ -2,6 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import '../features/offline_core/domain/eduvi_package_type.dart';
+import '../features/offline_core/services/eduvi_package_classifier.dart';
+import '../features/offline_core/services/game_session_manager.dart';
+
 import '../services/file_service.dart';
 import '../services/recent_file_service.dart';
 import 'presentation_screen.dart';
@@ -24,6 +28,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
   String? _selectedProject;
   String? _openingId;
   final Map<String, int> _lastViewedSlidesByPath = {};
+  final EduviPackageClassifier _packageClassifier = EduviPackageClassifier();
+  final GameSessionManager _gameSessionManager = GameSessionManager();
 
   List<EduViHistoryEntry> _allEntries = const [];
 
@@ -63,6 +69,27 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     setState(() => _openingId = entry.id);
     try {
+      final packageType = entry.isGame
+          ? EduviPackageType.game
+          : await _packageClassifier.classifyFile(entry.filePath);
+
+      if (packageType == EduviPackageType.game) {
+        final launch = await _gameSessionManager.launchFromEduviFile(entry.filePath);
+        await RecentFileService.saveGameOpened(
+          filePath: entry.filePath,
+          title: entry.title,
+        );
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Đã mở game offline. Session: ${launch.sessionId} (PID: ${launch.processId})',
+            ),
+          ),
+        );
+        return;
+      }
+
       final schema = await FileService.parseFile(entry.filePath);
       await RecentFileService.saveLastOpened(
         filePath: entry.filePath,
@@ -568,6 +595,20 @@ class _HistoryEntryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final blockEntries = entry.blockTypeCounts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
+    final isGame = entry.isGame;
+    final legacyTechnicalTitle = RegExp(r'^game\s+[a-z0-9_]+$', caseSensitive: false);
+    final normalizedPath = entry.filePath.replaceAll('\\', '/');
+    final pathParts = normalizedPath.split('/').where((part) => part.isNotEmpty).toList();
+    final fileName = pathParts.isEmpty ? entry.filePath : pathParts.last;
+    final fallbackTitle = fileName.toLowerCase().endsWith('.eduvi')
+        ? fileName.substring(0, fileName.length - '.eduvi'.length)
+        : fileName;
+    final displayTitle = (entry.title.trim().isEmpty || (isGame && legacyTechnicalTitle.hasMatch(entry.title.trim())))
+        ? fallbackTitle
+        : entry.title;
+    final leadingIcon = isGame ? Icons.sports_esports_rounded : Icons.slideshow_rounded;
+    final iconBg = isGame ? const Color(0xFFFFF7ED) : const Color(0xFFEFF6FF);
+    final iconColor = isGame ? const Color(0xFFB45309) : const Color(0xFF2563EB);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -578,9 +619,19 @@ class _HistoryEntryCard extends StatelessWidget {
           children: [
             Row(
               children: [
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: iconBg,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(leadingIcon, size: 18, color: iconColor),
+                ),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    entry.title,
+                    displayTitle,
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                 ),
