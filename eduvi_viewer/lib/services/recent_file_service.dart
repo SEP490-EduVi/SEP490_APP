@@ -156,7 +156,7 @@ class EduViHistoryEntry {
       blockTypeCounts: stats.blockTypeCounts,
       hasVideo: stats.hasVideo,
       hasQuiz: stats.hasQuiz,
-      packageType: 'slide',
+      packageType: schema.normalizedPackageType,
     );
   }
 
@@ -234,11 +234,12 @@ class EduViHistoryEntry {
       blockTypeCounts: counts,
       hasVideo: json['hasVideo'] as bool? ?? false,
       hasQuiz: json['hasQuiz'] as bool? ?? false,
-      packageType: ((json['packageType'] as String?) ?? 'slide').toLowerCase(),
+      packageType: _normalizeHistoryPackageType((json['packageType'] as String?) ?? 'slide'),
     );
   }
 
   bool get isGame => packageType == 'game';
+  bool get isVideo => packageType == 'video';
 }
 
 class _HistoryStats {
@@ -256,6 +257,24 @@ class _HistoryStats {
     final counts = <String, int>{};
     var hasVideo = false;
     var hasQuiz = false;
+
+    if (schema.videos.isNotEmpty) {
+      hasVideo = true;
+    }
+
+    for (final video in schema.videos) {
+      for (final interaction in video.interactions) {
+        final interactionType = interaction.normalizedType.toUpperCase();
+        if (interactionType.isEmpty) {
+          continue;
+        }
+
+        counts.update(interactionType, (value) => value + 1, ifAbsent: () => 1);
+        if (interaction.normalizedType == 'quiz') {
+          hasQuiz = true;
+        }
+      }
+    }
 
     for (final card in schema.cards) {
       if (card.isVideoSlide) {
@@ -299,6 +318,14 @@ String _buildHistoryId(String filePath) {
   return '${DateTime.now().microsecondsSinceEpoch}_${filePath.hashCode}';
 }
 
+String _normalizeHistoryPackageType(String value) {
+  final normalized = value.trim().toLowerCase();
+  if (normalized == 'game' || normalized == 'video') {
+    return normalized;
+  }
+  return 'slide';
+}
+
 String _fallbackTitleFromPath(String filePath) {
   final normalized = filePath.replaceAll('\\', '/');
   final parts = normalized.split('/').where((part) => part.isNotEmpty).toList();
@@ -318,6 +345,7 @@ class RecentFileService {
     await prefs.setString(_lastOpenedEduViKey, payload.toJsonString());
 
     final history = await _readHistoryEntries(prefs);
+    history.removeWhere((e) => e.filePath == filePath);
     history.insert(0, EduViHistoryEntry.fromSchema(filePath: filePath, schema: schema));
     final trimmed = _trimHistory(history, _maxHistoryEntries);
     await _writeHistoryEntries(prefs, trimmed);
@@ -329,6 +357,7 @@ class RecentFileService {
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final history = await _readHistoryEntries(prefs);
+    history.removeWhere((e) => e.filePath == filePath);
     final now = DateTime.now().toIso8601String();
 
     history.insert(

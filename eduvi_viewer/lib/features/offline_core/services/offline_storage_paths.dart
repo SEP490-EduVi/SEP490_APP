@@ -66,6 +66,7 @@ class OfflineStoragePaths {
   ) async {
     final base = switch (type) {
       EduviPackageType.slide => await slidesPath(),
+      EduviPackageType.video => await videosPath(),
       EduviPackageType.game => await gamesPath(),
     };
     return p.join(base, packageId, version);

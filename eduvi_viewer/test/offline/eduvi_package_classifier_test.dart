@@ -108,5 +108,29 @@ void main() {
 
       expect(type, EduviPackageType.game);
     });
+
+    test('classifies metadata.packageType=video as video package', () async {
+      final file = File('${tempDir.path}/video_metadata.eduvi');
+      await file.writeAsString(
+        jsonEncode({
+          'version': '1.1.0',
+          'metadata': {
+            'title': 'Video bai hoc',
+            'packageType': 'video',
+          },
+          'cards': [],
+          'videos': [
+            {
+              'videoUrl': 'asset://asset-1',
+            },
+          ],
+        }),
+      );
+
+      final classifier = EduviPackageClassifier();
+      final type = await classifier.classifyFile(file.path);
+
+      expect(type, EduviPackageType.video);
+    });
   });
 }

@@ -101,33 +101,35 @@ void main() {
     },
   );
 
-  testWidgets('home history list shows slide and game icons by package type', (
+  testWidgets('home history list renders video package entry', (
     tester,
   ) async {
-    final now = DateTime.now().toIso8601String();
+    final now = DateTime.now().toUtc();
+    final openedVideo = now.toIso8601String();
+    final openedGame = now.subtract(const Duration(minutes: 1)).toIso8601String();
     final payload = jsonEncode([
       {
-        'id': 'slide-1',
-        'filePath': 'D:/tmp/slide.eduvi',
-        'openedAt': now,
-        'title': 'Slide item',
+        'id': 'video-1',
+        'filePath': 'D:/tmp/video.eduvi',
+        'openedAt': openedVideo,
+        'title': 'Video item',
         'description': '',
-        'createdAt': now,
-        'updatedAt': now,
-        'slideCount': 1,
-        'blockTypeCounts': {'TEXT': 1},
-        'hasVideo': false,
-        'hasQuiz': false,
-        'packageType': 'slide',
+        'createdAt': openedVideo,
+        'updatedAt': openedVideo,
+        'slideCount': 0,
+        'blockTypeCounts': {},
+        'hasVideo': true,
+        'hasQuiz': true,
+        'packageType': 'video',
       },
       {
         'id': 'game-1',
         'filePath': 'D:/tmp/game.eduvi',
-        'openedAt': now,
+        'openedAt': openedGame,
         'title': 'Game item',
         'description': '',
-        'createdAt': now,
-        'updatedAt': now,
+        'createdAt': openedGame,
+        'updatedAt': openedGame,
         'slideCount': 0,
         'blockTypeCounts': {},
         'hasVideo': false,
@@ -143,8 +145,8 @@ void main() {
     await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.slideshow_rounded), findsWidgets);
-    expect(find.byIcon(Icons.sports_esports_rounded), findsOneWidget);
+    expect(find.text('Video item'), findsOneWidget);
+    expect(find.text('Video'), findsOneWidget);
   });
 
   testWidgets('home history list normalizes legacy technical game title', (

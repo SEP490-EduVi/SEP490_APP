@@ -9,6 +9,7 @@ import '../features/offline_core/services/game_session_manager.dart';
 import '../services/file_service.dart';
 import '../services/recent_file_service.dart';
 import 'presentation_screen.dart';
+import 'video_player_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -71,6 +72,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
     try {
       final packageType = entry.isGame
           ? EduviPackageType.game
+          : entry.isVideo
+          ? EduviPackageType.video
           : await _packageClassifier.classifyFile(entry.filePath);
 
       if (packageType == EduviPackageType.game) {
@@ -97,20 +100,28 @@ class _HistoryScreenState extends State<HistoryScreen> {
       );
 
       if (!mounted) return;
-      final result = await Navigator.of(context).push<int>(
-        MaterialPageRoute(
-          builder: (_) => PresentationScreen(
-            schema: schema,
-            initialSlideIndex: _lastViewedSlidesByPath[entry.filePath] ?? 0,
-            onExitSlideChanged: (slideIndex) {
-              _lastViewedSlidesByPath[entry.filePath] = slideIndex;
-            },
+      if (packageType == EduviPackageType.video || schema.isVideoPackage) {
+        await Navigator.of(context).push<void>(
+          MaterialPageRoute(
+            builder: (_) => VideoPlayerScreen(schema: schema),
           ),
-        ),
-      );
+        );
+      } else {
+        final result = await Navigator.of(context).push<int>(
+          MaterialPageRoute(
+            builder: (_) => PresentationScreen(
+              schema: schema,
+              initialSlideIndex: _lastViewedSlidesByPath[entry.filePath] ?? 0,
+              onExitSlideChanged: (slideIndex) {
+                _lastViewedSlidesByPath[entry.filePath] = slideIndex;
+              },
+            ),
+          ),
+        );
 
-      if (result != null) {
-        _lastViewedSlidesByPath[entry.filePath] = result;
+        if (result != null) {
+          _lastViewedSlidesByPath[entry.filePath] = result;
+        }
       }
     } catch (e) {
       if (!mounted) return;
@@ -169,17 +180,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return fallback;
   }
 
+  String _normalizedCode(String? code) {
+    return (code ?? '').trim();
+  }
+
   List<EduViHistoryEntry> get _filteredEntries {
     final query = _searchController.text.trim().toLowerCase();
 
     return _allEntries.where((entry) {
-      if (_selectedGrade != null && entry.gradeCode != _selectedGrade) {
+      if (_selectedGrade != null && _normalizedCode(entry.gradeCode) != _selectedGrade) {
         return false;
       }
-      if (_selectedSubject != null && entry.subjectCode != _selectedSubject) {
+      if (_selectedSubject != null && _normalizedCode(entry.subjectCode) != _selectedSubject) {
         return false;
       }
-      if (_selectedProject != null && entry.projectCode != _selectedProject) {
+      if (_selectedProject != null && _normalizedCode(entry.projectCode) != _selectedProject) {
         return false;
       }
       if (_onlyVideo && !entry.hasVideo) return false;
@@ -208,12 +223,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final options = <_MetaOption>[];
 
     for (final entry in _allEntries) {
-      final code = entry.gradeCode ?? '';
+      final code = _normalizedCode(entry.gradeCode);
       if (seen.contains(code)) continue;
       seen.add(code);
       options.add(
         _MetaOption(
-          code: entry.gradeCode,
+          code: code,
           name: _labelOf(entry.gradeCode, entry.gradeName, 'Khối chưa rõ'),
         ),
       );
@@ -228,13 +243,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final options = <_MetaOption>[];
 
     for (final entry in _allEntries) {
-      if (_selectedGrade != null && entry.gradeCode != _selectedGrade) continue;
-      final code = entry.subjectCode ?? '';
+      if (_selectedGrade != null && _normalizedCode(entry.gradeCode) != _selectedGrade) {
+        continue;
+      }
+      final code = _normalizedCode(entry.subjectCode);
       if (seen.contains(code)) continue;
       seen.add(code);
       options.add(
         _MetaOption(
-          code: entry.subjectCode,
+          code: code,
           name: _labelOf(entry.subjectCode, entry.subjectName, 'Môn chưa rõ'),
         ),
       );
@@ -249,16 +266,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final options = <_MetaOption>[];
 
     for (final entry in _allEntries) {
-      if (_selectedGrade != null && entry.gradeCode != _selectedGrade) continue;
-      if (_selectedSubject != null && entry.subjectCode != _selectedSubject) {
+      if (_selectedGrade != null && _normalizedCode(entry.gradeCode) != _selectedGrade) {
         continue;
       }
-      final code = entry.projectCode ?? '';
+      if (_selectedSubject != null && _normalizedCode(entry.subjectCode) != _selectedSubject) {
+        continue;
+      }
+      final code = _normalizedCode(entry.projectCode);
       if (seen.contains(code)) continue;
       seen.add(code);
       options.add(
         _MetaOption(
-          code: entry.projectCode,
+          code: code,
           name: _labelOf(entry.projectCode, entry.projectName, 'Dự án chưa rõ'),
         ),
       );
@@ -278,15 +297,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     for (final entry in source) {
       final grade = _MetaOption(
-        code: entry.gradeCode,
+        code: _normalizedCode(entry.gradeCode),
         name: _labelOf(entry.gradeCode, entry.gradeName, 'Khối chưa rõ'),
       );
       final subject = _MetaOption(
-        code: entry.subjectCode,
+        code: _normalizedCode(entry.subjectCode),
         name: _labelOf(entry.subjectCode, entry.subjectName, 'Môn chưa rõ'),
       );
       final project = _MetaOption(
-        code: entry.projectCode,
+        code: _normalizedCode(entry.projectCode),
         name: _labelOf(entry.projectCode, entry.projectName, 'Dự án chưa rõ'),
       );
 
@@ -559,14 +578,25 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return SizedBox(
       width: 220,
       child: DropdownButtonFormField<String?>(
+        isExpanded: true,
         value: value,
         decoration: InputDecoration(labelText: label),
         items: [
-          const DropdownMenuItem<String?>(value: null, child: Text('Tất cả')),
+          const DropdownMenuItem<String?>(
+            value: null,
+            child: Text(
+              'Tất cả',
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           ...options.map(
             (option) => DropdownMenuItem<String?>(
               value: option.code,
-              child: Text(option.name),
+              child: Text(
+                option.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ),
         ],
@@ -596,6 +626,7 @@ class _HistoryEntryCard extends StatelessWidget {
     final blockEntries = entry.blockTypeCounts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     final isGame = entry.isGame;
+    final isVideo = entry.isVideo;
     final legacyTechnicalTitle = RegExp(r'^game\s+[a-z0-9_]+$', caseSensitive: false);
     final normalizedPath = entry.filePath.replaceAll('\\', '/');
     final pathParts = normalizedPath.split('/').where((part) => part.isNotEmpty).toList();
@@ -606,9 +637,15 @@ class _HistoryEntryCard extends StatelessWidget {
     final displayTitle = (entry.title.trim().isEmpty || (isGame && legacyTechnicalTitle.hasMatch(entry.title.trim())))
         ? fallbackTitle
         : entry.title;
-    final leadingIcon = isGame ? Icons.sports_esports_rounded : Icons.slideshow_rounded;
-    final iconBg = isGame ? const Color(0xFFFFF7ED) : const Color(0xFFEFF6FF);
-    final iconColor = isGame ? const Color(0xFFB45309) : const Color(0xFF2563EB);
+    final leadingIcon = isGame
+      ? Icons.sports_esports_rounded
+      : (isVideo ? Icons.ondemand_video_rounded : Icons.slideshow_rounded);
+    final iconBg = isGame
+      ? const Color(0xFFFFF7ED)
+      : (isVideo ? const Color(0xFFFEF2F2) : const Color(0xFFEFF6FF));
+    final iconColor = isGame
+      ? const Color(0xFFB45309)
+      : (isVideo ? const Color(0xFFB91C1C) : const Color(0xFF2563EB));
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -653,7 +690,9 @@ class _HistoryEntryCard extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                _TinyChip(label: 'Trang chiếu ${entry.slideCount}'),
+                if (!isVideo || entry.slideCount > 0)
+                  _TinyChip(label: 'Trang chiếu ${entry.slideCount}'),
+                if (isVideo) const _TinyChip(label: 'Video package'),
                 if (entry.hasVideo) const _TinyChip(label: 'Video'),
                 if (entry.hasQuiz) const _TinyChip(label: 'Câu hỏi'),
                 for (final item in blockEntries.take(4))

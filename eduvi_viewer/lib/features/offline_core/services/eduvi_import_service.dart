@@ -90,8 +90,16 @@ class EduviImportService {
     }
 
     final hasCards = manifest['cards'] is List;
+    final hasVideos = manifest['videos'] is List;
     if (packageType == EduviPackageType.slide && !hasCards) {
       throw const FormatException('Package slide thiếu dữ liệu cards');
+    }
+
+    if (packageType == EduviPackageType.video) {
+      final videos = hasVideos ? (manifest['videos'] as List<dynamic>) : const <dynamic>[];
+      if (videos.isEmpty) {
+        throw const FormatException('Package video thiếu mảng videos[]');
+      }
     }
 
     if (packageType == EduviPackageType.game) {
