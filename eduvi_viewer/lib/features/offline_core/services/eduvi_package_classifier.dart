@@ -32,6 +32,11 @@ class EduviPackageClassifier {
       return EduviPackageType.game;
     }
 
+    final videos = json['videos'];
+    if (videos is List && videos.isNotEmpty) {
+      return EduviPackageType.video;
+    }
+
     if (json['gameRuntime'] is Map<String, dynamic>) {
       return EduviPackageType.game;
     }

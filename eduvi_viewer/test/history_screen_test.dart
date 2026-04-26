@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -113,5 +115,34 @@ void main() {
     });
 
     expect(hasWhiteToneBackground, isTrue);
+  });
+
+  testWidgets('history screen shows video icon for video package entries', (
+    tester,
+  ) async {
+    final now = DateTime.now().toIso8601String();
+    SharedPreferences.setMockInitialValues({
+      'eduvi_open_history_v2': jsonEncode([
+        {
+          'id': 'video-1',
+          'filePath': 'D:/tmp/video.eduvi',
+          'openedAt': now,
+          'title': 'Video lesson',
+          'description': '',
+          'createdAt': now,
+          'updatedAt': now,
+          'slideCount': 0,
+          'blockTypeCounts': {'VIDEO': 1, 'QUIZ': 1},
+          'hasVideo': true,
+          'hasQuiz': true,
+          'packageType': 'video',
+        },
+      ]),
+    });
+
+    await tester.pumpWidget(const MaterialApp(home: HistoryScreen()));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.ondemand_video_rounded), findsWidgets);
   });
 }

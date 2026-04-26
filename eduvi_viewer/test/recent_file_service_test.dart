@@ -5,6 +5,7 @@ import 'package:eduvi_viewer/models/block_model.dart';
 import 'package:eduvi_viewer/models/card_model.dart';
 import 'package:eduvi_viewer/models/eduvi_schema.dart';
 import 'package:eduvi_viewer/models/layout_model.dart';
+import 'package:eduvi_viewer/services/file_service.dart';
 import 'package:eduvi_viewer/services/recent_file_service.dart';
 
 void main() {
@@ -143,5 +144,34 @@ void main() {
     expect(history.first.packageType, 'game');
     expect(history.first.slideCount, 0);
     expect(history.first.title, 'Game test');
+  });
+
+  test('saveLastOpened stores video package type and quiz marker', () async {
+    final schema = FileService.parseSchemaJson('{'
+        '"version":"1.1.0",'
+        '"exportedAt":"2026-04-23T14:33:35.772Z",'
+        '"metadata":{"title":"Dia 10","packageType":"video"},'
+        '"cards":[],'
+        '"videos":[{'
+          '"videoUrl":"asset://asset-1",'
+          '"interactions":[{'
+            '"type":"quiz",'
+            '"pause_time":10.5,'
+            '"payload":{"question":"Q?","options":["A","B"],"correctIndex":1}'
+          '}]'
+        '}],'
+        '"assets":{"asset-1":{"mimeType":"video/mp4","base64":"AAAA","originalUrl":"","kind":"video"}}'
+      '}');
+
+    await RecentFileService.saveLastOpened(
+      filePath: 'D:/tmp/video.eduvi',
+      schema: schema,
+    );
+
+    final history = await RecentFileService.getHistory();
+    expect(history, hasLength(1));
+    expect(history.first.packageType, 'video');
+    expect(history.first.hasVideo, true);
+    expect(history.first.hasQuiz, true);
   });
 }

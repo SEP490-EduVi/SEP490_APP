@@ -132,6 +132,13 @@ class PackageManifestParser {
       }
     }
 
+    if (manifest.packageType == EduviPackageType.video) {
+      final videos = manifest.raw['videos'];
+      if (videos is! List || videos.isEmpty) {
+        throw const FormatException('Package video thiếu trường videos');
+      }
+    }
+
     if (manifest.packageType == EduviPackageType.game) {
       final games = manifest.raw['games'];
       final hasRuntime = manifest.raw['gameRuntime'] is Map<String, dynamic>;

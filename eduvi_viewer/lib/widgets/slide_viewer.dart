@@ -27,8 +27,9 @@ class SlideViewer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mainAxisAlignment = switch (card.contentAlignment.toLowerCase()) {
+      'top' => MainAxisAlignment.start,
       'bottom' => MainAxisAlignment.end,
-      _ => MainAxisAlignment.start,
+      _ => MainAxisAlignment.center,
     };
 
     DecorationImage? backgroundImage;
@@ -62,6 +63,9 @@ class SlideViewer extends StatelessWidget {
           vertical: 16,
         );
 
+        final contentMinHeight =
+            constraints.maxHeight - outerPadding.vertical - innerPadding.vertical;
+
         return Padding(
           padding: outerPadding,
           child: DecoratedBox(
@@ -84,6 +88,33 @@ class SlideViewer extends StatelessWidget {
                   ? SelectionContainer.disabled(
                       child: SingleChildScrollView(
                         padding: innerPadding,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(minHeight: contentMinHeight),
+                          child: Column(
+                            mainAxisAlignment: mainAxisAlignment,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              for (final layout in card.layouts)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: LayoutRenderer(
+                                    layout: layout,
+                                    assetService: assetService,
+                                    onNextSlide: onNextSlide,
+                                    presentationMode: presentationMode,
+                                    isActiveSlide: isActiveSlide,
+                                    runtimeSessionId: runtimeSessionId,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      padding: innerPadding,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: contentMinHeight),
                         child: Column(
                           mainAxisAlignment: mainAxisAlignment,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -102,27 +133,6 @@ class SlideViewer extends StatelessWidget {
                               ),
                           ],
                         ),
-                      ),
-                    )
-                  : SingleChildScrollView(
-                      padding: innerPadding,
-                      child: Column(
-                        mainAxisAlignment: mainAxisAlignment,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          for (final layout in card.layouts)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: LayoutRenderer(
-                                layout: layout,
-                                assetService: assetService,
-                                onNextSlide: onNextSlide,
-                                presentationMode: presentationMode,
-                                isActiveSlide: isActiveSlide,
-                                runtimeSessionId: runtimeSessionId,
-                              ),
-                            ),
-                        ],
                       ),
                     ),
             ),
