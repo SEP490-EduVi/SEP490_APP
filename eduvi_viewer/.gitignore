@@ -51,3 +51,12 @@ app.*.map.json
 /installer/_verify_extract*/
 *.zip
 *.exe
+
+# Source-only repository mode (exclude generated desktop artifacts)
+/apps/electron_game_runtime/node_modules/
+/apps/electron_game_runtime/packaged/
+/apps/electron_game_runtime/dist/
+/apps/mediapipe-game-desktop/dist/
+/apps/mediapipe-game-desktop/dist-*/
+/apps/mediapipe-game-desktop/*.asar
+/*.eduvi
